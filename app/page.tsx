@@ -66,7 +66,7 @@ export default function HomePage() {
         </section>
 
         {/* Directory Section */}
-        <section className="container px-4 py-8 md:py-12">
+        <section id="directory" className="container px-4 py-8 md:py-12">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
               Food Assistance Directory
