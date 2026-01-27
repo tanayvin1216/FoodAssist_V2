@@ -29,7 +29,7 @@
 
 ## 📖 The Story
 
-When I learned about the **Carteret County Food & Health Council's** mission to connect residents with food assistance resources, I saw an opportunity to make a real difference. The council was managing their directory manually—Google Forms feeding into spreadsheets, Word documents for reports, and countless hours of volunteer work just to keep information up to date.
+When I learned about the **Carteret County Food & Health Council's** mission to connect residents with food assistance resources, I saw an opportunity to make a real difference. The council was managing their directory manually—Google Forms feeding into spreadsheets, Word documents for reports, and countless hours of volunteer work just to keep information up to date. This project aims to help the **10,240** people who face hunger in Carteret County.
 
 **I built this application to serve the Carteret County community** by creating a modern, accessible platform that helps:
 
