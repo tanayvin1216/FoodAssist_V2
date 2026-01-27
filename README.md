@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Food Assistance Directory - Carteret County
+
+A modern web application helping residents of Carteret County, North Carolina find food assistance resources including food pantries, hot meals, and other support programs.
+
+**Live Demo:** [foodassist.vercel.app](https://foodassist.vercel.app)
+
+## Features
+
+### Public Directory
+- **Search & Filter** - Find organizations by name, location, or ZIP code
+- **Advanced Filtering** - Filter by assistance type, days open, and donation types accepted
+- **Mobile-Friendly** - Fully responsive design for all devices
+- **Quick Access** - One-click calling and directions to organizations
+
+### For Organizations
+- **Self-Service Portal** - Organizations can manage their own listings
+- **Real-Time Updates** - Keep hours, services, and contact info current
+- **Volunteer Coordination** - Post and manage volunteer opportunities
+
+### Admin Dashboard
+- **Organization Management** - Approve, edit, or remove listings
+- **Analytics** - Track usage and engagement
+- **Donation Tracking** - Monitor community contributions
+
+## Tech Stack
+
+- **Framework:** [Next.js 14](https://nextjs.org/) with App Router
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components:** [shadcn/ui](https://ui.shadcn.com/)
+- **Database & Auth:** [Supabase](https://supabase.com/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **Deployment:** [Vercel](https://vercel.com/)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+
+- npm or yarn
+- Supabase account (for database and authentication)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/tanayvin1216/FoodAssist-.git
+   cd food-assistance-app
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+
+   Create a `.env.local` file in the root directory:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Set up the database**
+
+   Run the SQL migrations in your Supabase SQL Editor:
+   - `supabase/migrations/001_initial_schema.sql` - Creates tables and RLS policies
+   - `supabase/seed.sql` - (Optional) Adds sample data
+
+5. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+```
+food-assistance-app/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/            # Authentication pages (login, register)
+│   ├── admin/             # Admin dashboard
+│   ├── organization/      # Public organization pages
+│   ├── portal/            # Organization self-service portal
+│   └── volunteers/        # Volunteer opportunities
+├── components/
+│   ├── directory/         # Directory components (search, filters, cards)
+│   ├── layout/            # Header, Footer
+│   ├── organizations/     # Organization forms
+│   └── ui/                # shadcn/ui components
+├── lib/
+│   ├── supabase/          # Supabase client configuration
+│   ├── utils/             # Utilities, constants, formatters
+│   └── validations/       # Zod validation schemas
+├── supabase/
+│   ├── migrations/        # Database schema migrations
+│   └── seed.sql           # Sample data
+└── types/                 # TypeScript type definitions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Database Schema
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The application uses the following main tables:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **organizations** - Food assistance organizations
+- **operating_hours** - Weekly schedules for each organization
+- **volunteer_needs** - Volunteer opportunities
+- **profiles** - User profiles with role-based access
+- **donations** - Donation tracking records
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+### Vercel (Recommended)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Push your code to GitHub
+2. Import the project in [Vercel](https://vercel.com/)
+3. Add environment variables in Vercel project settings
+4. Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Environment Variables for Production
 
-## Deploy on Vercel
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anonymous key |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## Acknowledgments
+
+- Built for Carteret County, NC community
+- Inspired by the need for accessible food assistance information
+- Thanks to all the organizations working to fight food insecurity
