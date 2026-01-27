@@ -118,16 +118,16 @@ export function FilterPanel({ filters, onChange, towns }: FilterPanelProps) {
               Town
             </Label>
             <Select
-              value={filters.town || ''}
+              value={filters.town || 'all'}
               onValueChange={(value) =>
-                onChange({ ...filters, town: value || undefined })
+                onChange({ ...filters, town: value === 'all' ? undefined : value })
               }
             >
               <SelectTrigger>
                 <SelectValue placeholder="All towns" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All towns</SelectItem>
+                <SelectItem value="all">All towns</SelectItem>
                 {towns.map((town) => (
                   <SelectItem key={town} value={town}>
                     {town}
