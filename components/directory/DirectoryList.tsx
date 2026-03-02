@@ -239,7 +239,7 @@ export function DirectoryList({
           className={`flex-shrink-0 h-12 rounded-full flex items-center justify-center transition-all duration-400 ease-in-out ${
             searchOpen
               ? 'w-12 bg-slate-700 text-white shadow-lg'
-              : 'w-auto px-5 gap-2.5 bg-stone-100 text-stone-600 hover:bg-stone-200'
+              : 'w-auto px-5 gap-2.5 bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
           <div className="relative w-6 h-6 flex items-center justify-center">
@@ -280,7 +280,7 @@ export function DirectoryList({
             placeholder="Search..."
             value={filters.search || ''}
             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            className="w-full h-12 px-4 bg-white border-2 border-stone-200 rounded-xl text-base focus:outline-none focus:border-slate-400 transition-colors"
+            className="w-full h-12 px-4 bg-white border-2 border-slate-200 rounded-xl text-base focus:outline-none focus:border-slate-400 transition-colors"
           />
         </div>
 
@@ -295,7 +295,7 @@ export function DirectoryList({
           } ${
             filterOpen || activeFilterCount > 0
               ? 'bg-slate-700 text-white'
-              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
           }`}
         >
           <svg
@@ -343,19 +343,19 @@ export function DirectoryList({
 
       {/* View Controls */}
       <div className="flex items-center justify-between">
-        <p className="text-sm text-stone-500">
+        <p className="text-sm text-slate-500">
           {filteredOrganizations.length} places
         </p>
 
         <div className="flex items-center gap-2">
           {/* View Mode Toggle */}
-          <div className="flex bg-stone-100 rounded-lg p-0.5">
+          <div className="flex bg-slate-100 rounded-lg p-0.5">
             <button
               onClick={() => toggleScrollView('carousel')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 scrollView === 'carousel'
-                  ? 'bg-white text-stone-800 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-700'
+                  ? 'bg-white text-slate-800 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               Cards
@@ -364,8 +364,8 @@ export function DirectoryList({
               onClick={() => toggleScrollView('list')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 scrollView === 'list'
-                  ? 'bg-white text-stone-800 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-700'
+                  ? 'bg-white text-slate-800 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               List
@@ -373,13 +373,13 @@ export function DirectoryList({
           </div>
 
           {/* Detail Toggle */}
-          <div className="flex bg-stone-100 rounded-lg p-0.5">
+          <div className="flex bg-slate-100 rounded-lg p-0.5">
             <button
               onClick={() => toggleCardView('simple')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 cardView === 'simple'
-                  ? 'bg-white text-stone-800 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-700'
+                  ? 'bg-white text-slate-800 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               Simple
@@ -388,8 +388,8 @@ export function DirectoryList({
               onClick={() => toggleCardView('classic')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 cardView === 'classic'
-                  ? 'bg-white text-stone-800 shadow-sm'
-                  : 'text-stone-500 hover:text-stone-700'
+                  ? 'bg-white text-slate-800 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               Full
@@ -405,11 +405,11 @@ export function DirectoryList({
         </div>
       ) : filteredOrganizations.length === 0 ? (
         <div className="text-center py-16">
-          <div className="w-14 h-14 mx-auto mb-4 bg-stone-100 rounded-xl flex items-center justify-center">
-            <Search className="w-6 h-6 text-stone-400" />
+          <div className="w-14 h-14 mx-auto mb-4 bg-slate-100 rounded-xl flex items-center justify-center">
+            <Search className="w-6 h-6 text-slate-400" />
           </div>
-          <p className="text-stone-600 font-medium">No places found</p>
-          <p className="text-sm text-stone-400 mt-1">
+          <p className="text-slate-700 font-medium">No places found</p>
+          <p className="text-sm text-slate-400 mt-1">
             Try adjusting your search
           </p>
         </div>
@@ -419,15 +419,15 @@ export function DirectoryList({
           {/* Navigation Arrows - Desktop */}
           <button
             onClick={() => goToCard(currentIndex - 1)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white border border-stone-200 rounded-xl shadow-sm flex items-center justify-center hover:bg-stone-50 transition-colors hidden sm:flex"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white border border-slate-200 rounded-xl shadow-sm flex items-center justify-center hover:bg-slate-50 transition-colors hidden sm:flex"
           >
-            <ChevronLeft className="w-5 h-5 text-stone-600" />
+            <ChevronLeft className="w-5 h-5 text-slate-600" />
           </button>
           <button
             onClick={() => goToCard(currentIndex + 1)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white border border-stone-200 rounded-xl shadow-sm flex items-center justify-center hover:bg-stone-50 transition-colors hidden sm:flex"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white border border-slate-200 rounded-xl shadow-sm flex items-center justify-center hover:bg-slate-50 transition-colors hidden sm:flex"
           >
-            <ChevronRight className="w-5 h-5 text-stone-600" />
+            <ChevronRight className="w-5 h-5 text-slate-600" />
           </button>
 
           {/* Carousel Container */}
@@ -463,7 +463,7 @@ export function DirectoryList({
                 className={`transition-all duration-300 rounded-full ${
                   index === currentIndex
                     ? 'w-6 h-1.5 bg-slate-600'
-                    : 'w-1.5 h-1.5 bg-stone-300 hover:bg-stone-400'
+                    : 'w-1.5 h-1.5 bg-slate-300 hover:bg-slate-400'
                 }`}
                 aria-label={`Go to card ${index + 1}`}
               />
@@ -471,7 +471,7 @@ export function DirectoryList({
           </div>
 
           {/* Swipe Hint - Mobile */}
-          <p className="text-center text-xs text-stone-400 mt-2 sm:hidden">
+          <p className="text-center text-xs text-slate-400 mt-2 sm:hidden">
             Swipe to see more
           </p>
         </div>

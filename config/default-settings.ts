@@ -1,0 +1,130 @@
+import { SiteSettings } from '@/types/settings';
+
+export const defaultSettings: SiteSettings = {
+  branding: {
+    siteName: 'FoodAssist',
+    siteTagline: 'Food Assistance Directory',
+    logoAbbreviation: 'FA',
+    primaryColor: 'sky',
+    footerTagline:
+      'A project by the Carteret County Food & Health Council to connect community members with food assistance resources.',
+  },
+  contact: {
+    organizationName: 'Carteret County Food & Health Council',
+    address: '',
+    city: 'Beaufort',
+    state: 'NC',
+    email: 'info@carteretfood.org',
+    phone: '2527287000',
+    emergencyPhone: '2527287000',
+    emergencyPhoneDisplay: '(252) 728-7000',
+    externalHelpUrl: 'https://211.org',
+    externalHelpLabel: 'Dial 211 for Help',
+  },
+  hero: {
+    locationBadge: 'Carteret County, NC',
+    headline: 'Find Food Assistance Near You',
+    subtitle:
+      'Connect with local food pantries, hot meals, and community programs in your area.',
+    showStats: true,
+    statsLabels: {
+      locations: 'locations',
+      towns: 'towns',
+      services: 'Free services',
+    },
+  },
+  emergency: {
+    enabled: true,
+    icon: 'heart',
+    title: 'Need Immediate Help?',
+    description:
+      "Contact us for emergency food assistance — we're here to help.",
+    showPrimaryPhone: true,
+    showExternalHelp: true,
+  },
+  navigation: {
+    headerItems: [
+      {
+        id: '1',
+        name: 'Find Food',
+        href: '/',
+        enabled: true,
+        order: 1,
+        showInHeader: true,
+        showInFooter: true,
+      },
+      {
+        id: '2',
+        name: 'Volunteer',
+        href: '/volunteers',
+        enabled: true,
+        order: 2,
+        showInHeader: true,
+        showInFooter: true,
+      },
+      {
+        id: '3',
+        name: 'Organizations',
+        href: '/portal/dashboard',
+        enabled: true,
+        order: 3,
+        showInHeader: true,
+        showInFooter: true,
+      },
+    ],
+    footerQuickLinks: [
+      {
+        id: '4',
+        name: 'Find Food Assistance',
+        href: '/',
+        enabled: true,
+        order: 1,
+        showInHeader: false,
+        showInFooter: true,
+      },
+      {
+        id: '5',
+        name: 'Volunteer Opportunities',
+        href: '/volunteers',
+        enabled: true,
+        order: 2,
+        showInHeader: false,
+        showInFooter: true,
+      },
+      {
+        id: '6',
+        name: 'Organization Portal',
+        href: '/portal/dashboard',
+        enabled: true,
+        order: 3,
+        showInHeader: false,
+        showInFooter: true,
+      },
+      {
+        id: '7',
+        name: 'Admin Dashboard',
+        href: '/admin',
+        enabled: true,
+        order: 4,
+        showInHeader: false,
+        showInFooter: true,
+      },
+    ],
+    showSignIn: true,
+    signInLabel: 'Sign In',
+  },
+  metadata: {
+    title: 'Food Assistance Directory | Carteret County',
+    description:
+      'Find food assistance resources in Carteret County, NC. Search for food pantries, hot meals, and other food assistance programs.',
+    keywords: [
+      'food assistance',
+      'food pantry',
+      'Carteret County',
+      'North Carolina',
+      'hunger relief',
+      'food bank',
+    ],
+  },
+  lastUpdated: new Date().toISOString(),
+};
