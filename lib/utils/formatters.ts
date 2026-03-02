@@ -151,3 +151,27 @@ export function getDirectionsUrl(address: string, town: string, zip: string): st
   const fullAddress = encodeURIComponent(`${address}, ${town}, NC ${zip}`);
   return `https://www.google.com/maps/dir/?api=1&destination=${fullAddress}`;
 }
+
+/**
+ * Check if organization is currently open
+ */
+export function isOpenNow(hours: OperatingHours[]): boolean {
+  if (!hours || hours.length === 0) return false;
+
+  const now = new Date();
+  const dayIndex = now.getDay();
+  // Convert Sunday=0 to match our monday-first array
+  const today = DAYS_OF_WEEK[dayIndex === 0 ? 6 : dayIndex - 1];
+  const todayHours = hours.find((h) => h.day === today);
+
+  if (!todayHours || todayHours.is_closed) return false;
+  if (!todayHours.open_time || !todayHours.close_time) return true; // Assume open if no specific times
+
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const [openH, openM] = todayHours.open_time.split(':').map(Number);
+  const [closeH, closeM] = todayHours.close_time.split(':').map(Number);
+  const openTime = openH * 60 + openM;
+  const closeTime = closeH * 60 + closeM;
+
+  return currentTime >= openTime && currentTime < closeTime;
+}

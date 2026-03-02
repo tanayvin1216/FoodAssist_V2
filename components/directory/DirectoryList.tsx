@@ -5,12 +5,16 @@ import { Organization, DirectoryFilters } from '@/types/database';
 import { SearchBar } from './SearchBar';
 import { FilterPanel } from './FilterPanel';
 import { OrgCard } from './OrgCard';
-import { Loader2 } from 'lucide-react';
+import { OrgCardSimple } from './OrgCardSimple';
+import { Loader2, LayoutGrid, List } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface DirectoryListProps {
   initialOrganizations: Organization[];
   towns: string[];
 }
+
+type CardView = 'classic' | 'simple';
 
 export function DirectoryList({
   initialOrganizations,
@@ -18,6 +22,21 @@ export function DirectoryList({
 }: DirectoryListProps) {
   const [filters, setFilters] = useState<DirectoryFilters>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [cardView, setCardView] = useState<CardView>('classic');
+
+  // Load saved preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('cardView');
+    if (saved === 'classic' || saved === 'simple') {
+      setCardView(saved);
+    }
+  }, []);
+
+  // Save preference when changed
+  const toggleCardView = (view: CardView) => {
+    setCardView(view);
+    localStorage.setItem('cardView', view);
+  };
 
   // Client-side filtering for immediate feedback
   const filteredOrganizations = useMemo(() => {
@@ -82,7 +101,7 @@ export function DirectoryList({
       {/* Filters */}
       <FilterPanel filters={filters} onChange={setFilters} towns={towns} />
 
-      {/* Results count */}
+      {/* Results count and view toggle */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">
           {filteredOrganizations.length === 0 ? (
@@ -93,6 +112,28 @@ export function DirectoryList({
             `${filteredOrganizations.length} organizations found`
           )}
         </p>
+
+        {/* Card view toggle */}
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <Button
+            variant={cardView === 'classic' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => toggleCardView('classic')}
+            className="text-xs px-3"
+          >
+            <List className="w-4 h-4 mr-1" />
+            Detailed
+          </Button>
+          <Button
+            variant={cardView === 'simple' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => toggleCardView('simple')}
+            className="text-xs px-3"
+          >
+            <LayoutGrid className="w-4 h-4 mr-1" />
+            Simple
+          </Button>
+        </div>
       </div>
 
       {/* Organization List */}
@@ -111,9 +152,13 @@ export function DirectoryList({
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredOrganizations.map((org) => (
-            <OrgCard key={org.id} organization={org} />
-          ))}
+          {filteredOrganizations.map((org) =>
+            cardView === 'simple' ? (
+              <OrgCardSimple key={org.id} organization={org} />
+            ) : (
+              <OrgCard key={org.id} organization={org} />
+            )
+          )}
         </div>
       )}
     </div>
