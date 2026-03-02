@@ -2,17 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, Search, Building2, Users, LogIn } from 'lucide-react';
+import { Menu, Utensils } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Find Food', href: '/#directory', icon: Search },
-  { name: 'Volunteer', href: '/volunteers', icon: Users },
-  { name: 'For Organizations', href: '/portal/dashboard', icon: Building2 },
+  { name: 'Find Food', href: '/' },
+  { name: 'Volunteer', href: '/volunteers' },
+  { name: 'Organizations', href: '/portal/dashboard' },
 ];
 
 export function Header() {
@@ -20,56 +17,54 @@ export function Header() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-lg">
-            FA
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-stone-200">
+      <div className="container flex h-14 items-center justify-between px-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-xl bg-slate-700 flex items-center justify-center">
+            <Utensils className="w-4 h-4 text-white" />
           </div>
-          <div className="hidden sm:block">
-            <div className="font-semibold text-gray-900">Food Assistance</div>
-            <div className="text-xs text-gray-500">Carteret County</div>
-          </div>
+          <span className="font-bold text-lg text-stone-800 hidden sm:block">
+            FoodAssist
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden md:flex items-center gap-1">
           {navigation.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={cn(
-                  'flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors',
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                )}
+                    ? 'bg-stone-100 text-stone-800'
+                    : 'text-stone-500 hover:text-stone-700 hover:bg-stone-50'
+                }`}
               >
-                <item.icon className="w-4 h-4 mr-2" />
                 {item.name}
               </Link>
             );
           })}
-          <Link href="/login">
-            <Button variant="outline" size="sm" className="ml-2">
-              <LogIn className="w-4 h-4 mr-2" />
-              Sign In
-            </Button>
-          </Link>
         </nav>
 
-        {/* Mobile Navigation */}
+        {/* Desktop Sign In */}
+        <Link
+          href="/login"
+          className="hidden md:block px-4 py-2 text-stone-600 hover:text-stone-800 font-medium text-sm transition-colors"
+        >
+          Sign In
+        </Link>
+
+        {/* Mobile Menu */}
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">Open menu</span>
-            </Button>
+          <SheetTrigger className="md:hidden p-2 rounded-lg hover:bg-stone-100 transition-colors">
+            <Menu className="h-5 w-5 text-stone-600" />
           </SheetTrigger>
-          <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-            <nav className="flex flex-col space-y-2 mt-8">
+          <SheetContent side="bottom" className="rounded-t-2xl h-auto pb-8">
+            <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto mb-6 mt-2" />
+            <nav className="flex flex-col gap-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
@@ -77,25 +72,22 @@ export function Header() {
                     key={item.name}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className={cn(
-                      'flex items-center px-4 py-3 text-base font-medium rounded-lg transition-colors',
+                    className={`px-4 py-3.5 rounded-xl text-base font-medium transition-colors ${
                       isActive
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    )}
+                        ? 'bg-slate-700 text-white'
+                        : 'text-stone-700 hover:bg-stone-100'
+                    }`}
                   >
-                    <item.icon className="w-5 h-5 mr-3" />
                     {item.name}
                   </Link>
                 );
               })}
-              <hr className="my-4" />
+              <hr className="my-2 border-stone-200" />
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="flex items-center px-4 py-3 text-base font-medium text-blue-600 hover:bg-blue-50 rounded-lg"
+                className="px-4 py-3.5 text-base font-medium text-stone-500 hover:bg-stone-100 rounded-xl transition-colors"
               >
-                <LogIn className="w-5 h-5 mr-3" />
                 Sign In
               </Link>
             </nav>

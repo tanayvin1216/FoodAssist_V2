@@ -1,9 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Phone, Navigation, Clock } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Phone, Navigation, Clock, MapPin } from 'lucide-react';
 import { Organization } from '@/types/database';
 import {
   formatPhone,
@@ -32,73 +30,81 @@ export function OrgCardSimple({ organization }: OrgCardSimpleProps) {
   const todayHours = getTodayHours(operating_hours);
 
   return (
-    <Card className="hover:shadow-lg transition-shadow h-full">
-      <CardContent className="p-5 sm:p-6">
-        {/* Status Row */}
-        <div className="flex items-center justify-between mb-4">
-          <div
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold ${
-              isOpen
-                ? 'bg-green-100 text-green-800'
-                : 'bg-gray-100 text-gray-600'
-            }`}
-          >
+    <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+      {/* Status Banner - Muted, calm colors */}
+      <div
+        className={`px-5 py-3 ${
+          isOpen
+            ? 'bg-emerald-50 border-b border-emerald-100'
+            : 'bg-stone-100 border-b border-stone-200'
+        }`}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                isOpen ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+              className={`w-2 h-2 rounded-full ${
+                isOpen ? 'bg-emerald-500' : 'bg-stone-400'
               }`}
             />
-            {isOpen ? 'OPEN NOW' : 'CLOSED'}
+            <span
+              className={`font-semibold text-sm tracking-wide ${
+                isOpen ? 'text-emerald-700' : 'text-stone-600'
+              }`}
+            >
+              {isOpen ? 'Open Now' : 'Closed'}
+            </span>
           </div>
           {spanish_available && (
-            <span className="text-sm text-blue-600 font-semibold">
+            <span className="text-stone-500 text-sm font-medium">
               Español
             </span>
           )}
         </div>
+      </div>
 
-        {/* Name - Large and clear */}
+      {/* Content */}
+      <div className="p-5">
+        {/* Name */}
         <Link href={`/organization/${id}`}>
-          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors leading-tight">
+          <h3 className="text-xl font-bold text-stone-800 mb-1.5 hover:text-slate-600 transition-colors leading-tight">
             {name}
           </h3>
         </Link>
 
         {/* Location */}
-        <p className="text-base text-gray-600 mb-4">{town}, NC</p>
+        <div className="flex items-center gap-1.5 text-stone-500 mb-5">
+          <MapPin className="w-4 h-4" />
+          <span className="text-sm">{town}, NC</span>
+        </div>
 
-        {/* Hours and Phone - Key Info */}
-        <div className="space-y-3 mb-6">
+        {/* Info Cards - Unified neutral tones */}
+        <div className="space-y-2.5 mb-5">
           {/* Hours */}
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-            <Clock className="w-5 h-5 text-gray-500 flex-shrink-0" />
-            <span className="text-base text-gray-800 font-medium">
-              {todayHours}
-            </span>
+          <div className="flex items-center gap-3 px-4 py-3 bg-stone-50 rounded-xl">
+            <Clock className="w-5 h-5 text-stone-400" />
+            <span className="text-stone-700 font-medium text-sm">{todayHours}</span>
           </div>
 
-          {/* Phone */}
+          {/* Phone - Tappable */}
           <a
             href={`tel:${phone}`}
-            className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+            className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
           >
-            <Phone className="w-5 h-5 text-blue-600 flex-shrink-0" />
-            <span className="text-base text-blue-800 font-semibold">
+            <div className="w-8 h-8 rounded-lg bg-slate-600 flex items-center justify-center">
+              <Phone className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-slate-700 font-semibold text-sm">
               {formatPhone(phone)}
             </span>
           </a>
         </div>
 
-        {/* Large action buttons */}
-        <div className="flex gap-3">
+        {/* Actions - Unified button style */}
+        <div className="flex gap-2.5">
           <Link href={`/organization/${id}`} className="flex-1">
-            <Button
-              variant="default"
-              size="lg"
-              className="w-full text-base py-5 font-semibold"
-            >
+            <button className="w-full py-3.5 bg-slate-700 hover:bg-slate-800 text-white font-medium rounded-xl transition-colors text-sm">
               More Details
-            </Button>
+            </button>
           </Link>
           <a
             href={getDirectionsUrl(address, town, zip)}
@@ -106,17 +112,13 @@ export function OrgCardSimple({ organization }: OrgCardSimpleProps) {
             rel="noopener noreferrer"
             className="flex-1"
           >
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full text-base py-5 font-semibold"
-            >
-              <Navigation className="w-5 h-5 mr-2" />
+            <button className="w-full py-3.5 bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
+              <Navigation className="w-4 h-4" />
               Directions
-            </Button>
+            </button>
           </a>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -1,13 +1,17 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Organization, DirectoryFilters } from '@/types/database';
-import { SearchBar } from './SearchBar';
 import { FilterPanel } from './FilterPanel';
 import { OrgCard } from './OrgCard';
 import { OrgCardSimple } from './OrgCardSimple';
-import { Loader2, LayoutGrid, List, GalleryHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import {
+  Loader2,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 
 interface DirectoryListProps {
   initialOrganizations: Organization[];
@@ -22,9 +26,29 @@ export function DirectoryList({
   towns,
 }: DirectoryListProps) {
   const [filters, setFilters] = useState<DirectoryFilters>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [cardView, setCardView] = useState<CardView>('classic');
-  const [scrollView, setScrollView] = useState<ScrollView>('list');
+  const [isLoading] = useState(false);
+  const [cardView, setCardView] = useState<CardView>('simple');
+  const [scrollView, setScrollView] = useState<ScrollView>('carousel');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Get active filter count
+  const activeFilterCount =
+    (filters.town ? 1 : 0) +
+    (filters.assistanceTypes?.length || 0) +
+    (filters.daysOpen?.length || 0);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
 
   // Load saved preferences from localStorage
   useEffect(() => {
@@ -101,92 +125,321 @@ export function DirectoryList({
     return result;
   }, [initialOrganizations, filters]);
 
+  // Handle scroll to update current index
+  const handleScroll = useCallback(() => {
+    if (carouselRef.current && filteredOrganizations.length > 0) {
+      const scrollLeft = carouselRef.current.scrollLeft;
+      const cardWidth = carouselRef.current.offsetWidth;
+      const newIndex = Math.round(scrollLeft / cardWidth);
+
+      // Clamp index to valid range
+      const clampedIndex = Math.max(0, Math.min(newIndex, filteredOrganizations.length - 1));
+      setCurrentIndex(clampedIndex);
+    }
+  }, [filteredOrganizations.length]);
+
+  // Navigate carousel with looping
+  const goToCard = useCallback((index: number) => {
+    if (carouselRef.current && filteredOrganizations.length > 0) {
+      const cardWidth = carouselRef.current.offsetWidth;
+      // Handle looping
+      let targetIndex = index;
+      if (index < 0) {
+        targetIndex = filteredOrganizations.length - 1;
+      } else if (index >= filteredOrganizations.length) {
+        targetIndex = 0;
+      }
+      carouselRef.current.scrollTo({
+        left: cardWidth * targetIndex,
+        behavior: 'smooth',
+      });
+      setCurrentIndex(targetIndex);
+    }
+  }, [filteredOrganizations.length]);
+
+  // Touch handlers for swipe detection with looping
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const swipeThreshold = 50;
+
+    // Wait for scroll to settle, then check actual position
+    setTimeout(() => {
+      if (!carouselRef.current || filteredOrganizations.length <= 1) return;
+
+      // Get ACTUAL current position from scroll, not from state
+      const scrollLeft = carouselRef.current.scrollLeft;
+      const cardWidth = carouselRef.current.offsetWidth;
+      const actualIndex = Math.round(scrollLeft / cardWidth);
+      const lastIndex = filteredOrganizations.length - 1;
+
+      // Swiped left (trying to go next) while actually at last card
+      if (diff > swipeThreshold && actualIndex >= lastIndex) {
+        goToCard(0);
+      }
+      // Swiped right (trying to go previous) while actually at first card
+      else if (diff < -swipeThreshold && actualIndex <= 0) {
+        goToCard(lastIndex);
+      }
+    }, 250);
+  };
+
+  // Wheel handler for desktop scrolling with looping
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (!carouselRef.current || filteredOrganizations.length <= 1) return;
+
+    const isHorizontalScroll = Math.abs(e.deltaX) > Math.abs(e.deltaY);
+    if (!isHorizontalScroll) return;
+
+    // Get actual position from scroll
+    const scrollLeft = carouselRef.current.scrollLeft;
+    const cardWidth = carouselRef.current.offsetWidth;
+    const actualIndex = Math.round(scrollLeft / cardWidth);
+    const lastIndex = filteredOrganizations.length - 1;
+    const maxScroll = cardWidth * lastIndex;
+
+    const isScrollingRight = e.deltaX > 20;
+    const isScrollingLeft = e.deltaX < -20;
+
+    // At last card and scrolled to max, scrolling right -> loop to first
+    if (actualIndex >= lastIndex && scrollLeft >= maxScroll - 10 && isScrollingRight) {
+      e.preventDefault();
+      goToCard(0);
+    }
+    // At first card and scrolled to start, scrolling left -> loop to last
+    else if (actualIndex <= 0 && scrollLeft <= 10 && isScrollingLeft) {
+      e.preventDefault();
+      goToCard(lastIndex);
+    }
+  }, [filteredOrganizations.length, goToCard]);
+
+
   return (
-    <div className="space-y-6">
-      {/* Search Bar */}
-      <SearchBar
-        value={filters.search || ''}
-        onChange={(search) => setFilters({ ...filters, search })}
+    <div className="space-y-5">
+      {/* Search + Filter Bar - Animated */}
+      <div className="flex items-center justify-center gap-3">
+        {/* Search Button (stays visible, transforms when active) */}
+        <button
+          onClick={() => {
+            if (searchOpen) {
+              setSearchOpen(false);
+              setFilters({ ...filters, search: '' });
+            } else {
+              setSearchOpen(true);
+              setFilterOpen(false);
+            }
+          }}
+          className={`flex-shrink-0 h-12 rounded-full flex items-center justify-center transition-all duration-400 ease-in-out ${
+            searchOpen
+              ? 'w-12 bg-slate-700 text-white shadow-lg'
+              : 'w-auto px-5 gap-2.5 bg-stone-100 text-stone-600 hover:bg-stone-200'
+          }`}
+        >
+          <div className="relative w-6 h-6 flex items-center justify-center">
+            <Search
+              className={`absolute transition-all duration-400 ease-in-out ${
+                searchOpen ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'
+              }`}
+              style={{ width: 24, height: 24 }}
+            />
+            <X
+              className={`absolute transition-all duration-400 ease-in-out ${
+                searchOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'
+              }`}
+              style={{ width: 20, height: 20 }}
+            />
+          </div>
+          <span
+            className={`font-medium overflow-hidden transition-all duration-400 ease-in-out ${
+              searchOpen ? 'w-0 ml-0 opacity-0' : 'w-16 ml-1 opacity-100'
+            }`}
+          >
+            Search
+          </span>
+        </button>
+
+        {/* Expanding Search Input */}
+        <div
+          className={`transition-all duration-400 ease-in-out ${
+            searchOpen
+              ? 'w-48 sm:w-56 md:w-72 opacity-100'
+              : 'w-0 opacity-0'
+          }`}
+          style={{ overflow: 'hidden' }}
+        >
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Search..."
+            value={filters.search || ''}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            className="w-full h-12 px-4 bg-white border-2 border-stone-200 rounded-xl text-base focus:outline-none focus:border-slate-400 transition-colors"
+          />
+        </div>
+
+        {/* Filter Button - Gets pushed right */}
+        <button
+          onClick={() => {
+            setFilterOpen(!filterOpen);
+            if (searchOpen) setSearchOpen(false);
+          }}
+          className={`flex-shrink-0 flex items-center justify-center h-12 rounded-full transition-all duration-400 ease-in-out ${
+            searchOpen ? 'w-12 px-0' : 'w-auto px-5 gap-2.5'
+          } ${
+            filterOpen || activeFilterCount > 0
+              ? 'bg-slate-700 text-white'
+              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+          }`}
+        >
+          <svg
+            className="w-6 h-6 flex-shrink-0 transition-all duration-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+            />
+          </svg>
+          <span
+            className={`font-medium overflow-hidden transition-all duration-400 ease-in-out ${
+              searchOpen ? 'w-0 opacity-0' : 'w-14 opacity-100'
+            }`}
+          >
+            Filters
+          </span>
+          {activeFilterCount > 0 && (
+            <span
+              className={`flex-shrink-0 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center transition-all duration-400 ${
+                filterOpen || activeFilterCount > 0
+                  ? 'bg-white text-slate-700'
+                  : 'bg-slate-700 text-white'
+              } ${searchOpen ? 'ml-0' : 'ml-1'}`}
+            >
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Filter Panel (below the bar) */}
+      <FilterPanel
+        filters={filters}
+        onChange={setFilters}
+        towns={towns}
+        isOpen={filterOpen}
+        onClose={() => setFilterOpen(false)}
       />
 
-      {/* Filters */}
-      <FilterPanel filters={filters} onChange={setFilters} towns={towns} />
-
-      {/* Results count and view toggles */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <p className="text-sm text-gray-600">
-          {filteredOrganizations.length === 0 ? (
-            'No organizations found'
-          ) : filteredOrganizations.length === 1 ? (
-            '1 organization found'
-          ) : (
-            `${filteredOrganizations.length} organizations found`
-          )}
+      {/* View Controls */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-stone-500">
+          {filteredOrganizations.length} places
         </p>
 
-        <div className="flex items-center gap-3">
-          {/* Scroll view toggle */}
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <Button
-              variant={scrollView === 'list' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => toggleScrollView('list')}
-              className="text-xs px-3"
-            >
-              <List className="w-4 h-4 mr-1" />
-              List
-            </Button>
-            <Button
-              variant={scrollView === 'carousel' ? 'default' : 'ghost'}
-              size="sm"
+        <div className="flex items-center gap-2">
+          {/* View Mode Toggle */}
+          <div className="flex bg-stone-100 rounded-lg p-0.5">
+            <button
               onClick={() => toggleScrollView('carousel')}
-              className="text-xs px-3"
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                scrollView === 'carousel'
+                  ? 'bg-white text-stone-800 shadow-sm'
+                  : 'text-stone-500 hover:text-stone-700'
+              }`}
             >
-              <GalleryHorizontal className="w-4 h-4 mr-1" />
-              Swipe
-            </Button>
+              Cards
+            </button>
+            <button
+              onClick={() => toggleScrollView('list')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                scrollView === 'list'
+                  ? 'bg-white text-stone-800 shadow-sm'
+                  : 'text-stone-500 hover:text-stone-700'
+              }`}
+            >
+              List
+            </button>
           </div>
 
-          {/* Card view toggle */}
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <Button
-              variant={cardView === 'classic' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => toggleCardView('classic')}
-              className="text-xs px-3"
-            >
-              Detailed
-            </Button>
-            <Button
-              variant={cardView === 'simple' ? 'default' : 'ghost'}
-              size="sm"
+          {/* Detail Toggle */}
+          <div className="flex bg-stone-100 rounded-lg p-0.5">
+            <button
               onClick={() => toggleCardView('simple')}
-              className="text-xs px-3"
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                cardView === 'simple'
+                  ? 'bg-white text-stone-800 shadow-sm'
+                  : 'text-stone-500 hover:text-stone-700'
+              }`}
             >
               Simple
-            </Button>
+            </button>
+            <button
+              onClick={() => toggleCardView('classic')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                cardView === 'classic'
+                  ? 'bg-white text-stone-800 shadow-sm'
+                  : 'text-stone-500 hover:text-stone-700'
+              }`}
+            >
+              Full
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Organization List */}
+      {/* Organization Display */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-6 h-6 animate-spin text-slate-600" />
         </div>
       ) : filteredOrganizations.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-xl">
-          <p className="text-gray-600">
-            No organizations match your search criteria.
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Try adjusting your filters or search terms.
+        <div className="text-center py-16">
+          <div className="w-14 h-14 mx-auto mb-4 bg-stone-100 rounded-xl flex items-center justify-center">
+            <Search className="w-6 h-6 text-stone-400" />
+          </div>
+          <p className="text-stone-600 font-medium">No places found</p>
+          <p className="text-sm text-stone-400 mt-1">
+            Try adjusting your search
           </p>
         </div>
       ) : scrollView === 'carousel' ? (
-        /* Carousel / Horizontal scroll view */
+        /* Carousel View */
         <div className="relative">
-          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+          {/* Navigation Arrows - Desktop */}
+          <button
+            onClick={() => goToCard(currentIndex - 1)}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white border border-stone-200 rounded-xl shadow-sm flex items-center justify-center hover:bg-stone-50 transition-colors hidden sm:flex"
+          >
+            <ChevronLeft className="w-5 h-5 text-stone-600" />
+          </button>
+          <button
+            onClick={() => goToCard(currentIndex + 1)}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white border border-stone-200 rounded-xl shadow-sm flex items-center justify-center hover:bg-stone-50 transition-colors hidden sm:flex"
+          >
+            <ChevronRight className="w-5 h-5 text-stone-600" />
+          </button>
+
+          {/* Carousel Container */}
+          <div
+            ref={carouselRef}
+            onScroll={handleScroll}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
+            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+          >
             {filteredOrganizations.map((org) => (
               <div
                 key={org.id}
@@ -200,13 +453,30 @@ export function DirectoryList({
               </div>
             ))}
           </div>
-          {/* Scroll hint */}
-          <p className="text-center text-sm text-gray-400 mt-2">
-            Swipe to see more ({filteredOrganizations.length} total)
+
+          {/* Pagination Dots */}
+          <div className="flex items-center justify-center gap-1.5 mt-5">
+            {filteredOrganizations.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToCard(index)}
+                className={`transition-all duration-300 rounded-full ${
+                  index === currentIndex
+                    ? 'w-6 h-1.5 bg-slate-600'
+                    : 'w-1.5 h-1.5 bg-stone-300 hover:bg-stone-400'
+                }`}
+                aria-label={`Go to card ${index + 1}`}
+              />
+            ))}
+          </div>
+
+          {/* Swipe Hint - Mobile */}
+          <p className="text-center text-xs text-stone-400 mt-2 sm:hidden">
+            Swipe to see more
           </p>
         </div>
       ) : (
-        /* List view */
+        /* Clean List View */
         <div className="space-y-4">
           {filteredOrganizations.map((org) =>
             cardView === 'simple' ? (
