@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
+import { SettingsProvider } from '@/contexts/SettingsContext';
+import { defaultSettings } from '@/config/default-settings';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -9,17 +11,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Food Assistance Directory | Carteret County',
-  description:
-    'Find food assistance resources in Carteret County, NC. Search for food pantries, hot meals, and other food assistance programs.',
-  keywords: [
-    'food assistance',
-    'food pantry',
-    'Carteret County',
-    'North Carolina',
-    'hunger relief',
-    'food bank',
-  ],
+  title: defaultSettings.metadata.title,
+  description: defaultSettings.metadata.description,
+  keywords: defaultSettings.metadata.keywords,
 };
 
 export default function RootLayout({
@@ -30,8 +24,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen bg-gray-50 font-sans antialiased">
-        {children}
-        <Toaster position="top-right" />
+        <SettingsProvider>
+          {children}
+          <Toaster position="top-right" />
+        </SettingsProvider>
       </body>
     </html>
   );
