@@ -6,7 +6,7 @@ import { SearchBar } from './SearchBar';
 import { FilterPanel } from './FilterPanel';
 import { OrgCard } from './OrgCard';
 import { OrgCardSimple } from './OrgCardSimple';
-import { Loader2, LayoutGrid, List } from 'lucide-react';
+import { Loader2, LayoutGrid, List, GalleryHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface DirectoryListProps {
@@ -15,6 +15,7 @@ interface DirectoryListProps {
 }
 
 type CardView = 'classic' | 'simple';
+type ScrollView = 'list' | 'carousel';
 
 export function DirectoryList({
   initialOrganizations,
@@ -23,12 +24,17 @@ export function DirectoryList({
   const [filters, setFilters] = useState<DirectoryFilters>({});
   const [isLoading, setIsLoading] = useState(false);
   const [cardView, setCardView] = useState<CardView>('classic');
+  const [scrollView, setScrollView] = useState<ScrollView>('list');
 
-  // Load saved preference from localStorage
+  // Load saved preferences from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('cardView');
-    if (saved === 'classic' || saved === 'simple') {
-      setCardView(saved);
+    const savedCard = localStorage.getItem('cardView');
+    if (savedCard === 'classic' || savedCard === 'simple') {
+      setCardView(savedCard);
+    }
+    const savedScroll = localStorage.getItem('scrollView');
+    if (savedScroll === 'list' || savedScroll === 'carousel') {
+      setScrollView(savedScroll);
     }
   }, []);
 
@@ -36,6 +42,11 @@ export function DirectoryList({
   const toggleCardView = (view: CardView) => {
     setCardView(view);
     localStorage.setItem('cardView', view);
+  };
+
+  const toggleScrollView = (view: ScrollView) => {
+    setScrollView(view);
+    localStorage.setItem('scrollView', view);
   };
 
   // Client-side filtering for immediate feedback
@@ -101,8 +112,8 @@ export function DirectoryList({
       {/* Filters */}
       <FilterPanel filters={filters} onChange={setFilters} towns={towns} />
 
-      {/* Results count and view toggle */}
-      <div className="flex items-center justify-between">
+      {/* Results count and view toggles */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <p className="text-sm text-gray-600">
           {filteredOrganizations.length === 0 ? (
             'No organizations found'
@@ -113,26 +124,48 @@ export function DirectoryList({
           )}
         </p>
 
-        {/* Card view toggle */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-          <Button
-            variant={cardView === 'classic' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => toggleCardView('classic')}
-            className="text-xs px-3"
-          >
-            <List className="w-4 h-4 mr-1" />
-            Detailed
-          </Button>
-          <Button
-            variant={cardView === 'simple' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => toggleCardView('simple')}
-            className="text-xs px-3"
-          >
-            <LayoutGrid className="w-4 h-4 mr-1" />
-            Simple
-          </Button>
+        <div className="flex items-center gap-3">
+          {/* Scroll view toggle */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <Button
+              variant={scrollView === 'list' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => toggleScrollView('list')}
+              className="text-xs px-3"
+            >
+              <List className="w-4 h-4 mr-1" />
+              List
+            </Button>
+            <Button
+              variant={scrollView === 'carousel' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => toggleScrollView('carousel')}
+              className="text-xs px-3"
+            >
+              <GalleryHorizontal className="w-4 h-4 mr-1" />
+              Swipe
+            </Button>
+          </div>
+
+          {/* Card view toggle */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <Button
+              variant={cardView === 'classic' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => toggleCardView('classic')}
+              className="text-xs px-3"
+            >
+              Detailed
+            </Button>
+            <Button
+              variant={cardView === 'simple' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => toggleCardView('simple')}
+              className="text-xs px-3"
+            >
+              Simple
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -150,7 +183,30 @@ export function DirectoryList({
             Try adjusting your filters or search terms.
           </p>
         </div>
+      ) : scrollView === 'carousel' ? (
+        /* Carousel / Horizontal scroll view */
+        <div className="relative">
+          <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+            {filteredOrganizations.map((org) => (
+              <div
+                key={org.id}
+                className="flex-shrink-0 w-full snap-center"
+              >
+                {cardView === 'simple' ? (
+                  <OrgCardSimple organization={org} />
+                ) : (
+                  <OrgCard organization={org} />
+                )}
+              </div>
+            ))}
+          </div>
+          {/* Scroll hint */}
+          <p className="text-center text-sm text-gray-400 mt-2">
+            Swipe to see more ({filteredOrganizations.length} total)
+          </p>
+        </div>
       ) : (
+        /* List view */
         <div className="space-y-4">
           {filteredOrganizations.map((org) =>
             cardView === 'simple' ? (
