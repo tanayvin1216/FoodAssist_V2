@@ -12,18 +12,26 @@ export default function VolunteersPage() {
   };
 
   return (
-    <div className="bg-stone-50 min-h-screen">
-      {/* Hero */}
-      <section className="bg-white border-b border-stone-200">
-        <div className="container px-4 py-12 md:py-16">
+    <div className="bg-slate-50 min-h-screen">
+      {/* Hero with Background Image */}
+      <section className="relative overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: 'url(/volunteer-hero.jpg)' }}
+        />
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/80" />
+
+        <div className="container px-4 py-16 md:py-20 relative">
           <div className="max-w-xl mx-auto text-center">
-            <div className="w-14 h-14 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
-              <Users className="w-7 h-7 text-slate-600" />
+            <div className="w-14 h-14 mx-auto mb-4 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
+              <Users className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-stone-800 mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Volunteer Opportunities
             </h1>
-            <p className="text-lg text-stone-500">
+            <p className="text-lg text-white/80">
               Make a difference in your community by volunteering with local
               food assistance organizations.
             </p>
@@ -35,21 +43,21 @@ export default function VolunteersPage() {
       <section className="container px-4 py-10">
         <div className="max-w-2xl mx-auto">
           {activeNeeds.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-stone-200 p-10 text-center">
-              <div className="w-14 h-14 mx-auto mb-4 bg-stone-100 rounded-2xl flex items-center justify-center">
-                <Users className="w-7 h-7 text-stone-400" />
+            <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+              <div className="w-14 h-14 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
+                <Users className="w-7 h-7 text-slate-400" />
               </div>
-              <h2 className="text-xl font-semibold text-stone-800 mb-2">
+              <h2 className="text-xl font-semibold text-slate-800 mb-2">
                 No Volunteer Opportunities Available
               </h2>
-              <p className="text-stone-500">
+              <p className="text-slate-500">
                 Check back soon for new volunteer opportunities, or contact an
                 organization directly to offer your help.
               </p>
             </div>
           ) : (
             <div className="space-y-5">
-              <p className="text-stone-500 text-sm">
+              <p className="text-slate-500 text-sm">
                 {activeNeeds.length} volunteer{' '}
                 {activeNeeds.length === 1 ? 'opportunity' : 'opportunities'}{' '}
                 available
@@ -58,11 +66,11 @@ export default function VolunteersPage() {
               {activeNeeds.map((need) => {
                 const org = getOrganization(need.organization_id);
                 return (
-                  <div key={need.id} className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
+                  <div key={need.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
                     <div className="p-5">
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
                         <div>
-                          <h3 className="text-lg font-semibold text-stone-800">{need.title}</h3>
+                          <h3 className="text-lg font-semibold text-slate-800">{need.title}</h3>
                           {org && (
                             <Link
                               href={`/organization/${org.id}`}
@@ -73,25 +81,25 @@ export default function VolunteersPage() {
                           )}
                         </div>
                         {need.needed_date && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-stone-100 text-stone-600 rounded-lg text-xs font-medium">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
                             <Calendar className="w-3 h-3" />
                             {formatDate(need.needed_date)}
                           </span>
                         )}
                       </div>
 
-                      <p className="text-stone-600 mb-4">{need.description}</p>
+                      <p className="text-slate-600 mb-4">{need.description}</p>
 
-                      <div className="flex flex-wrap gap-4 text-sm text-stone-500 mb-4">
+                      <div className="flex flex-wrap gap-4 text-sm text-slate-500 mb-4">
                         {need.time_commitment && (
                           <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4 text-stone-400" />
+                            <Clock className="w-4 h-4 text-slate-400" />
                             <span>{need.time_commitment}</span>
                           </div>
                         )}
                         {need.contact_email && (
                           <div className="flex items-center gap-1">
-                            <Mail className="w-4 h-4 text-stone-400" />
+                            <Mail className="w-4 h-4 text-slate-500" />
                             <a
                               href={`mailto:${need.contact_email}`}
                               className="text-slate-600 hover:text-slate-800"
@@ -104,7 +112,7 @@ export default function VolunteersPage() {
 
                       {need.needed_skills && need.needed_skills.length > 0 && (
                         <div className="mb-4">
-                          <p className="text-xs font-medium text-stone-500 mb-2">
+                          <p className="text-xs font-medium text-slate-500 mb-2">
                             Skills / Requirements:
                           </p>
                           <div className="flex flex-wrap gap-1.5">
@@ -131,7 +139,7 @@ export default function VolunteersPage() {
                         )}
                         {org && (
                           <Link href={`/organization/${org.id}`}>
-                            <button className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-xl transition-colors flex items-center gap-2">
+                            <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors flex items-center gap-2">
                               View Organization
                               <ArrowRight className="w-4 h-4" />
                             </button>
@@ -154,7 +162,7 @@ export default function VolunteersPage() {
               Post your volunteer needs to connect with community helpers.
             </p>
             <Link href="/portal/dashboard">
-              <button className="px-5 py-2.5 bg-white text-slate-700 font-medium rounded-xl hover:bg-stone-100 transition-colors text-sm inline-flex items-center gap-2">
+              <button className="px-5 py-2.5 bg-white text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm inline-flex items-center gap-2">
                 Access Organization Portal
                 <ArrowRight className="w-4 h-4" />
               </button>

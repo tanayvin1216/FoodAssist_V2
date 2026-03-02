@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   Settings,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Council Donations', href: '/admin/donations', icon: Gift },
   { name: 'Reports', href: '/admin/reports', icon: FileText },
   { name: 'Users', href: '/admin/users', icon: Users },
+  { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 export default function AdminLayout({
@@ -69,7 +71,7 @@ export default function AdminLayout({
       <div className="border-t p-4 space-y-2">
         <Link href="/">
           <Button variant="ghost" className="w-full justify-start" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
+            <Eye className="h-4 w-4 mr-2" />
             View Public Site
           </Button>
         </Link>
