@@ -16,7 +16,7 @@
 
 ### Built for Carteret County, North Carolina
 
-### **[View Live Demo →](https://foodassist.vercel.app)**
+### **[View Live Demo →](https://food-assist-v2.vercel.app/)**
 
 <br/>
 
@@ -51,7 +51,7 @@ Bug reports, feature suggestions, Spanish translations, and PRs are all welcome.
 
 ## Contact
 
-- **Live Site:** [foodassist.vercel.app](https://foodassist.vercel.app)
+- **Live Site:** [foodassist.vercel.app](https://food-assist-v2.vercel.app/)
 - **GitHub:** [@tanayvin1216](https://github.com/tanayvin1216)
 - **Email:** [Vinaykya27T@ncssm.edu](mailto:Vinaykya27T@ncssm.edu)
 - **Issues:** [Report a bug or request a feature](https://github.com/tanayvin1216/FoodAssist-/issues)
