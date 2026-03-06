@@ -1,7 +1,8 @@
 <div align="center">
 
-# Food Assistance Directory
+<img width="100" height="100" alt="Carteret County Seal" src="https://github.com/user-attachments/assets/a57e2854-1ddb-4996-af29-30353a600430" />
 
+# Food Assistance Directory
 ### Connecting Carteret County Residents with Food Resources
 
 <br/>
@@ -58,8 +59,6 @@ Bug reports, feature suggestions, Spanish translations, and PRs are all welcome.
 
 ---
 
-<div align="center">
-
-**Built with ❤️ for Carteret County, North Carolina**
-
+<div align="center">  
+  Built with ❤️ for Carteret County, North Carolina
 </div>
