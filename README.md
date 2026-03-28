@@ -1,6 +1,7 @@
 <div align="center">
 
-<img width="100" height="100" alt="Carteret County Seal" src="https://github.com/user-attachments/assets/a57e2854-1ddb-4996-af29-30353a600430" />
+
+<img width="150" height="150" alt="carteret-copy (1)" src="https://github.com/user-attachments/assets/24890cda-ae7c-4053-a68e-42a1195b90a9" />
 
 # Food Assistance Directory
 ### Connecting Carteret County Residents with Food Resources
