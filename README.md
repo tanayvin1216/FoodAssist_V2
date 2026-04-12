@@ -22,8 +22,8 @@
 
 <br/>
 
-![GitHub stars](https://img.shields.io/github/stars/tanayvin1216/FoodAssist-?style=social)
-![GitHub forks](https://img.shields.io/github/forks/tanayvin1216/FoodAssist-?style=social)
+![GitHub stars](https://img.shields.io/github/stars/tanayvin1216/FoodAssist_V2?style=social)
+![GitHub forks](https://img.shields.io/github/forks/tanayvin1216/FoodAssist_V2?style=social)
 
 </div>
 
@@ -45,6 +45,20 @@ The Carteret County Food & Health Council was running their directory entirely b
 - 🌐 **Spanish support** ready
 
 
+## Running Locally
+
+```bash
+git clone https://github.com/tanayvin1216/FoodAssist_V2.git
+cd FoodAssist_V2
+npm install
+cp .env.example .env.local  # add your Supabase URL and anon key
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The app runs on sample data without Supabase — use the **Demo Login** button on the login page to access the portal.
+
+---
+
 ## Contributing
 
 Bug reports, feature suggestions, Spanish translations, and PRs are all welcome.
@@ -56,7 +70,7 @@ Bug reports, feature suggestions, Spanish translations, and PRs are all welcome.
 - **Live Site:** [foodassist.vercel.app](https://food-assist-v2.vercel.app/)
 - **GitHub:** [@tanayvin1216](https://github.com/tanayvin1216)
 - **Email:** [Vinaykya27T@ncssm.edu](mailto:Vinaykya27T@ncssm.edu)
-- **Issues:** [Report a bug or request a feature](https://github.com/tanayvin1216/FoodAssist-/issues)
+- **Issues:** [Report a bug or request a feature](https://github.com/tanayvin1216/FoodAssist_V2/issues)
 
 ---
 
