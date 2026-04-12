@@ -66,7 +66,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      <div className="container px-4 py-8 max-w-2xl mx-auto">
+      <div className="content-container max-w-2xl py-8">
         {/* Back Button */}
         <Link
           href="/"
@@ -176,11 +176,10 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                   href={getDirectionsUrl(address, town, zip)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="w-full py-3 bg-slate-700 hover:bg-slate-800 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
                 >
-                  <button className="w-full py-3 bg-slate-700 hover:bg-slate-800 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2">
-                    <Navigation className="w-4 h-4" />
-                    Get Directions
-                  </button>
+                  <Navigation className="w-4 h-4" />
+                  Get Directions
                 </a>
               </div>
             </div>

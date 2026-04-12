@@ -27,8 +27,9 @@ export async function getOrganizations(
   }
 
   if (filters?.search) {
+    const safe = filters.search.replace(/[,()]/g, '');
     query = query.or(
-      `name.ilike.%${filters.search}%,town.ilike.%${filters.search}%,address.ilike.%${filters.search}%`
+      `name.ilike.%${safe}%,town.ilike.%${safe}%,address.ilike.%${safe}%`
     );
   }
 
@@ -260,10 +261,12 @@ export async function getAllProfiles(
   return data as Profile[];
 }
 
+type ProfileUpdateData = Pick<Profile, 'name'>;
+
 export async function updateProfile(
   supabase: SupabaseClient,
   userId: string,
-  data: Partial<Profile>
+  data: ProfileUpdateData
 ): Promise<Profile> {
   const { data: profile, error } = await supabase
     .from('profiles')

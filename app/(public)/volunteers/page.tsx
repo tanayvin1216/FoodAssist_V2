@@ -23,7 +23,7 @@ export default function VolunteersPage() {
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/80" />
 
-        <div className="container px-4 py-16 md:py-20 relative">
+        <div className="content-container py-16 md:py-20 relative">
           <div className="max-w-xl mx-auto text-center">
             <div className="w-14 h-14 mx-auto mb-4 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
               <Users className="w-7 h-7 text-white" />
@@ -40,7 +40,7 @@ export default function VolunteersPage() {
       </section>
 
       {/* Content */}
-      <section className="container px-4 py-10">
+      <section className="content-container py-10">
         <div className="max-w-2xl mx-auto">
           {activeNeeds.length === 0 ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
@@ -128,21 +128,23 @@ export default function VolunteersPage() {
                         </div>
                       )}
 
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex flex-wrap gap-2 pt-2">
                         {need.contact_email && (
-                          <a href={`mailto:${need.contact_email}`}>
-                            <button className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2">
+                          <a
+                            href={`mailto:${need.contact_email}`}
+                            className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors inline-flex items-center gap-2"
+                          >
                               <Mail className="w-4 h-4" />
                               Contact to Volunteer
-                            </button>
                           </a>
                         )}
                         {org && (
-                          <Link href={`/organization/${org.id}`}>
-                            <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors flex items-center gap-2">
+                          <Link
+                            href={`/organization/${org.id}`}
+                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors inline-flex items-center gap-2"
+                          >
                               View Organization
                               <ArrowRight className="w-4 h-4" />
-                            </button>
                           </Link>
                         )}
                       </div>
@@ -161,11 +163,12 @@ export default function VolunteersPage() {
             <p className="text-slate-300 text-sm mb-4">
               Post your volunteer needs to connect with community helpers.
             </p>
-            <Link href="/portal/dashboard">
-              <button className="px-5 py-2.5 bg-white text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm inline-flex items-center gap-2">
+            <Link
+              href="/portal/dashboard"
+              className="px-5 py-2.5 bg-white text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm inline-flex items-center gap-2"
+            >
                 Access Organization Portal
                 <ArrowRight className="w-4 h-4" />
-              </button>
             </Link>
           </div>
         </div>

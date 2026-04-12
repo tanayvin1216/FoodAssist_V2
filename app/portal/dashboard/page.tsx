@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { sampleOrganizations, sampleVolunteerNeeds } from '@/lib/utils/sampleData';
 import { formatDate, getShortHoursSummary } from '@/lib/utils/formatters';
+import { ASSISTANCE_TYPE_LABELS } from '@/lib/utils/constants';
+import { AssistanceType } from '@/types/database';
 
 export default function PortalDashboardPage() {
   // In production, fetch the user's organization from Supabase
@@ -101,7 +103,7 @@ export default function PortalDashboardPage() {
             <div className="flex flex-wrap gap-2">
               {organization.assistance_types.slice(0, 2).map((type) => (
                 <Badge key={type} variant="secondary" className="text-xs">
-                  {type.replace(/_/g, ' ')}
+                  {ASSISTANCE_TYPE_LABELS[type as AssistanceType] ?? type.replace(/_/g, ' ')}
                 </Badge>
               ))}
             </div>

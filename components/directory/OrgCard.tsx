@@ -91,22 +91,21 @@ export function OrgCard({ organization }: OrgCardProps) {
 
         {/* Actions */}
         <div className="flex sm:flex-col gap-2 sm:items-end">
-          <Link href={`/organization/${id}`} className="flex-1 sm:flex-none">
-            <button className="w-full sm:w-auto px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-1">
-              View Details
-              <ChevronRight className="w-4 h-4" />
-            </button>
+          <Link
+            href={`/organization/${id}`}
+            className="flex-1 sm:flex-none w-full sm:w-auto px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors inline-flex items-center justify-center gap-1"
+          >
+            View Details
+            <ChevronRight className="w-4 h-4" />
           </Link>
           <a
             href={getDirectionsUrl(address, town, zip)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors inline-flex items-center justify-center gap-1"
           >
-            <button className="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors flex items-center justify-center gap-1">
-              <Navigation className="w-4 h-4" />
-              Directions
-            </button>
+            <Navigation className="w-4 h-4" />
+            Directions
           </a>
         </div>
       </div>

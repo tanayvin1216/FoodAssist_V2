@@ -35,6 +35,7 @@ import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 import { COUNCIL_DONATION_TYPE_LABELS } from '@/lib/utils/constants';
 import { CouncilDonation, CouncilDonationType } from '@/types/database';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 // Sample donation data
 const initialDonations: CouncilDonation[] = [
@@ -74,6 +75,7 @@ export default function AdminDonationsPage() {
   const [donations, setDonations] = useState(initialDonations);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterOrg, setFilterOrg] = useState<string>('all');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const filteredDonations =
     filterOrg === 'all'
@@ -110,10 +112,8 @@ export default function AdminDonationsPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this donation record?')) {
-      setDonations(donations.filter((d) => d.id !== id));
-      toast.success('Donation record deleted');
-    }
+    setDonations(donations.filter((d) => d.id !== id));
+    toast.success('Donation record deleted');
   };
 
   return (
@@ -321,7 +321,7 @@ export default function AdminDonationsPage() {
                       variant="ghost"
                       size="icon"
                       className="text-red-600 hover:text-red-700"
-                      onClick={() => handleDelete(donation.id)}
+                      onClick={() => setDeleteId(donation.id)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
@@ -342,6 +342,14 @@ export default function AdminDonationsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteId(null); }}
+        title="Delete Donation Record"
+        description="Are you sure you want to delete this donation record? This action cannot be undone."
+        onConfirm={() => deleteId && handleDelete(deleteId)}
+      />
     </div>
   );
 }

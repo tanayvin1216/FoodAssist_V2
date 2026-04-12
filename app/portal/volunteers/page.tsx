@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { sampleVolunteerNeeds, sampleOrganizations } from '@/lib/utils/sampleData';
 import { formatDate } from '@/lib/utils/formatters';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function PortalVolunteersPage() {
   const organization = sampleOrganizations[0];
@@ -27,6 +28,7 @@ export default function PortalVolunteersPage() {
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNeed, setEditingNeed] = useState<(typeof sampleVolunteerNeeds)[0] | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,10 +58,8 @@ export default function PortalVolunteersPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this volunteer need?')) {
-      setVolunteerNeeds(volunteerNeeds.filter((v) => v.id !== id));
-      toast.success('Volunteer need deleted');
-    }
+    setVolunteerNeeds(volunteerNeeds.filter((v) => v.id !== id));
+    toast.success('Volunteer need deleted');
   };
 
   const handleEdit = (need: (typeof sampleVolunteerNeeds)[0]) => {
@@ -226,7 +226,7 @@ export default function PortalVolunteersPage() {
                     variant="outline"
                     size="sm"
                     className="text-red-600 hover:text-red-700"
-                    onClick={() => handleDelete(need.id)}
+                    onClick={() => setDeleteId(need.id)}
                   >
                     <Trash2 className="w-4 h-4 mr-1" />
                     Delete
@@ -237,6 +237,14 @@ export default function PortalVolunteersPage() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteId(null); }}
+        title="Delete Volunteer Need"
+        description="Are you sure you want to delete this volunteer need? This action cannot be undone."
+        onConfirm={() => deleteId && handleDelete(deleteId)}
+      />
     </div>
   );
 }

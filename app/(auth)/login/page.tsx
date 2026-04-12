@@ -17,7 +17,11 @@ import { toast } from 'sonner';
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/portal/dashboard';
+  const rawRedirect = searchParams.get('redirect') || '/portal/dashboard';
+  const redirectTo =
+    rawRedirect.startsWith('/') && !rawRedirect.startsWith('//')
+      ? rawRedirect
+      : '/portal/dashboard';
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -113,14 +117,16 @@ function LoginForm() {
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full mt-4"
-            onClick={handleDemoLogin}
-          >
-            Demo Login (No Supabase Required)
-          </Button>
+          {process.env.NODE_ENV === 'development' && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mt-4"
+              onClick={handleDemoLogin}
+            >
+              Demo Login (Dev Only)
+            </Button>
+          )}
         </div>
 
         <p className="mt-6 text-center text-sm text-gray-600">

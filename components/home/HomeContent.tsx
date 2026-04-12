@@ -31,7 +31,7 @@ export function HeroSection({ organizationCount, townCount }: HomeContentProps) 
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/80" />
 
-      <div className="container px-4 py-16 md:py-24 relative">
+      <div className="content-container py-16 md:py-24 relative">
         <div className="max-w-xl mx-auto text-center">
           {/* Location Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium mb-6 border border-white/20">
@@ -91,7 +91,7 @@ export function EmergencySection() {
   const Icon = iconMap[emergency.icon];
 
   return (
-    <section className="container px-4 pb-12">
+    <section className="content-container pb-12">
       <div className="max-w-xl mx-auto">
         <div className="bg-slate-700 rounded-3xl p-8 text-center text-white shadow-xl">
           <div className="w-12 h-12 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center">

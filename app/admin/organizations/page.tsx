@@ -41,6 +41,7 @@ import { OrgForm } from '@/components/forms/OrgForm';
 import { OrganizationFormValues } from '@/lib/validations/schemas';
 import { toast } from 'sonner';
 import { Organization } from '@/types/database';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 export default function AdminOrganizationsPage() {
   const [organizations, setOrganizations] = useState<Organization[]>(sampleOrganizations);
@@ -48,6 +49,7 @@ export default function AdminOrganizationsPage() {
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const filteredOrgs = organizations.filter(
     (org) =>
@@ -56,10 +58,8 @@ export default function AdminOrganizationsPage() {
   );
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this organization?')) {
-      setOrganizations(organizations.filter((o) => o.id !== id));
-      toast.success('Organization deleted');
-    }
+    setOrganizations(organizations.filter((o) => o.id !== id));
+    toast.success('Organization deleted');
   };
 
   const handleToggleActive = (org: Organization) => {
@@ -221,7 +221,7 @@ export default function AdminOrganizationsPage() {
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600"
-                        onClick={() => handleDelete(org.id)}
+                        onClick={() => setDeleteId(org.id)}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete
@@ -241,6 +241,14 @@ export default function AdminOrganizationsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteId(null); }}
+        title="Delete Organization"
+        description="Are you sure you want to delete this organization? This action cannot be undone."
+        onConfirm={() => deleteId && handleDelete(deleteId)}
+      />
 
       {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

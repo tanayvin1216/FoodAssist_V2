@@ -33,6 +33,7 @@ import { sampleOrganizations } from '@/lib/utils/sampleData';
 import { formatDate } from '@/lib/utils/formatters';
 import { Profile, UserRole } from '@/types/database';
 import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 // Sample users data
 const initialUsers: Profile[] = [
@@ -83,6 +84,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState(initialUsers);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('organization');
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const getOrgName = (id?: string) => {
     if (!id) return '-';
@@ -111,10 +113,8 @@ export default function AdminUsersPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter((u) => u.id !== id));
-      toast.success('User deleted');
-    }
+    setUsers(users.filter((u) => u.id !== id));
+    toast.success('User deleted');
   };
 
   return (
@@ -296,7 +296,7 @@ export default function AdminUsersPage() {
                         variant="ghost"
                         size="icon"
                         className="text-red-600 hover:text-red-700"
-                        onClick={() => handleDelete(user.id)}
+                        onClick={() => setDeleteId(user.id)}
                         disabled={user.id === '1'} // Prevent deleting main admin
                       >
                         <Trash2 className="w-4 h-4" />
@@ -309,6 +309,14 @@ export default function AdminUsersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={deleteId !== null}
+        onOpenChange={(open) => { if (!open) setDeleteId(null); }}
+        title="Delete User"
+        description="Are you sure you want to delete this user? This action cannot be undone."
+        onConfirm={() => deleteId && handleDelete(deleteId)}
+      />
     </div>
   );
 }

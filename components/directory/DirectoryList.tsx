@@ -342,12 +342,12 @@ export function DirectoryList({
       />
 
       {/* View Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
           {filteredOrganizations.length} places
         </p>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* View Mode Toggle */}
           <div className="flex bg-slate-100 rounded-lg p-0.5">
             <button
@@ -418,12 +418,14 @@ export function DirectoryList({
         <div className="relative">
           {/* Navigation Arrows - Desktop */}
           <button
+            aria-label="Previous organization"
             onClick={() => goToCard(currentIndex - 1)}
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-10 h-10 bg-white border border-slate-200 rounded-xl shadow-sm flex items-center justify-center hover:bg-slate-50 transition-colors hidden sm:flex"
           >
             <ChevronLeft className="w-5 h-5 text-slate-600" />
           </button>
           <button
+            aria-label="Next organization"
             onClick={() => goToCard(currentIndex + 1)}
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-10 h-10 bg-white border border-slate-200 rounded-xl shadow-sm flex items-center justify-center hover:bg-slate-50 transition-colors hidden sm:flex"
           >

@@ -100,22 +100,21 @@ export function OrgCardSimple({ organization }: OrgCardSimpleProps) {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2.5">
-          <Link href={`/organization/${id}`} className="flex-1">
-            <button className="w-full py-3.5 bg-slate-700 hover:bg-slate-800 text-white font-medium rounded-xl transition-colors text-sm">
-              More Details
-            </button>
+        <div className="flex flex-wrap gap-2.5">
+          <Link
+            href={`/organization/${id}`}
+            className="flex-1 min-w-[140px] py-3.5 bg-slate-700 hover:bg-slate-800 text-white font-medium rounded-xl transition-colors text-sm text-center"
+          >
+            More Details
           </Link>
           <a
             href={getDirectionsUrl(address, town, zip)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1"
+            className="flex-1 min-w-[140px] py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
           >
-            <button className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-colors flex items-center justify-center gap-2 text-sm">
-              <Navigation className="w-4 h-4" />
-              Directions
-            </button>
+            <Navigation className="w-4 h-4" />
+            Directions
           </a>
         </div>
       </div>

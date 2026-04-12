@@ -19,7 +19,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-slate-200">
-      <div className="container flex h-14 items-center justify-between px-4">
+      <div className="content-container flex h-14 items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-slate-700 flex items-center justify-center">
@@ -62,7 +62,7 @@ export function Header() {
 
         {/* Mobile Menu */}
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger className="md:hidden p-2 rounded-lg hover:bg-slate-50 transition-colors">
+          <SheetTrigger aria-label="Open navigation menu" className="md:hidden p-2 rounded-lg hover:bg-slate-50 transition-colors">
             <Menu className="h-5 w-5 text-slate-600" />
           </SheetTrigger>
           <SheetContent side="bottom" className="rounded-t-2xl h-auto pb-8">
