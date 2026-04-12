@@ -124,7 +124,7 @@ function LoginForm() {
               className="w-full mt-4"
               onClick={handleDemoLogin}
             >
-              Demo Login (Dev Only)
+              Demo Login (No Supabase Required)
             </Button>
           )}
         </div>
