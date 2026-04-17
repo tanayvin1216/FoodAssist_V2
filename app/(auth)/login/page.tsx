@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -98,10 +97,8 @@ function LoginForm() {
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-text">
-          Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-navy hover:underline">
-            Sign up
-          </Link>
+          Accounts are created by the Food &amp; Health Council administrators.
+          If you manage an organization, ask an admin to invite you.
         </p>
       </CardContent>
     </Card>

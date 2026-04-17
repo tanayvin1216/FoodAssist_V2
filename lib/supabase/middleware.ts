@@ -37,9 +37,16 @@ export async function updateSession(request: NextRequest) {
   // Protected routes
   const isPortalRoute = request.nextUrl.pathname.startsWith('/portal');
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
-  const isAuthRoute =
-    request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/signup');
+  const isAuthRoute = request.nextUrl.pathname.startsWith('/login');
+
+  // Self-service signup is disabled — accounts are admin-invited only.
+  // Hard-redirect any legacy /signup traffic to the login page.
+  if (request.nextUrl.pathname.startsWith('/signup')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.search = '';
+    return NextResponse.redirect(url);
+  }
 
   // Redirect unauthenticated users away from protected routes
   if (!user && (isPortalRoute || isAdminRoute)) {

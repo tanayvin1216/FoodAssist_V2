@@ -108,17 +108,6 @@ export const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Signup schema
-export const signupSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-  name: z.string().min(1, 'Name is required').max(100),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
-
 // Directory filter schema
 export const directoryFilterSchema = z.object({
   search: z.string().optional(),
@@ -220,5 +209,4 @@ export type CouncilDonationFormValues = z.infer<typeof councilDonationSchema>;
 export type VolunteerNeedFormValues = z.infer<typeof volunteerNeedSchema>;
 export type ProfileFormValues = z.infer<typeof profileSchema>;
 export type LoginFormValues = z.infer<typeof loginSchema>;
-export type SignupFormValues = z.infer<typeof signupSchema>;
 export type DirectoryFilterValues = z.infer<typeof directoryFilterSchema>;
