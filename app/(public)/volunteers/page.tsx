@@ -45,8 +45,8 @@ export default async function VolunteersPage() {
         </div>
       </section>
 
-      <section className="container px-6 pb-16">
-        <div className="max-w-2xl">
+      <section className="container px-6 pb-16 mx-auto max-w-5xl">
+        <div className="max-w-2xl mx-auto">
           {activeNeeds.length === 0 ? (
             <div className="text-center py-16">
               <Users className="w-5 h-5 mx-auto mb-3 text-muted-text" />
