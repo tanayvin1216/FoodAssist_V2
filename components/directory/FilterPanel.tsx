@@ -41,20 +41,19 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
   if (!isOpen) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-stone-200 p-5 animate-in slide-in-from-top-2 duration-200">
-      {/* Town Selection */}
+    <div className="bg-white rounded-2xl shadow-md p-6 animate-in slide-in-from-top-2 duration-200">
       <div className="mb-5">
-        <h4 className="text-sm font-semibold text-stone-700 mb-3 flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-stone-400" />
+        <h4 className="text-xs font-medium uppercase tracking-wider text-muted-text mb-3 flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5" />
           Town
         </h4>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => onChange({ ...filters, town: undefined })}
-            className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-full text-sm transition-colors ${
               !filters.town
-                ? 'bg-slate-700 text-white'
-                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                ? 'bg-navy text-white'
+                : 'text-body-text hover:bg-navy/5'
             }`}
           >
             All
@@ -63,10 +62,10 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
             <button
               key={town}
               onClick={() => onChange({ ...filters, town })}
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-full text-sm transition-colors ${
                 filters.town === town
-                  ? 'bg-slate-700 text-white'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  ? 'bg-navy text-white'
+                  : 'text-body-text hover:bg-navy/5'
               }`}
             >
               {town}
@@ -75,9 +74,8 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
         </div>
       </div>
 
-      {/* Assistance Type */}
       <div className="mb-5">
-        <h4 className="text-sm font-semibold text-stone-700 mb-3">
+        <h4 className="text-xs font-medium uppercase tracking-wider text-muted-text mb-3">
           Type of Help
         </h4>
         <div className="flex flex-wrap gap-2">
@@ -85,10 +83,10 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
             <button
               key={type}
               onClick={() => handleAssistanceTypeChange(type)}
-              className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded-full text-sm transition-colors ${
                 filters.assistanceTypes?.includes(type)
-                  ? 'bg-slate-700 text-white'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  ? 'bg-navy text-white'
+                  : 'text-body-text hover:bg-navy/5'
               }`}
             >
               {ASSISTANCE_TYPE_LABELS[type]}
@@ -97,9 +95,8 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
         </div>
       </div>
 
-      {/* Days Open */}
       <div className="mb-5">
-        <h4 className="text-sm font-semibold text-stone-700 mb-3">
+        <h4 className="text-xs font-medium uppercase tracking-wider text-muted-text mb-3">
           Open On
         </h4>
         <div className="flex flex-wrap gap-2">
@@ -107,10 +104,10 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
             <button
               key={day}
               onClick={() => handleDayChange(day)}
-              className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+              className={`w-11 h-11 rounded-full text-sm transition-colors ${
                 filters.daysOpen?.includes(day)
-                  ? 'bg-slate-700 text-white'
-                  : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                  ? 'bg-navy text-white'
+                  : 'text-body-text hover:bg-navy/5'
               }`}
             >
               {DAY_LABELS[day].slice(0, 2)}
@@ -119,10 +116,9 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
         </div>
       </div>
 
-      {/* Done Button */}
       <button
         onClick={onClose}
-        className="w-full py-3 bg-slate-700 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors text-sm"
+        className="w-full h-11 text-sm font-medium text-white bg-navy rounded-full hover:bg-navy-light transition-colors"
       >
         Done
       </button>
