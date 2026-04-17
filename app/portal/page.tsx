@@ -2,11 +2,12 @@ import { requireOrganization } from '@/lib/supabase/auth';
 import { createClient } from '@/lib/supabase/server';
 import { getOrganizationById, getVolunteerNeeds } from '@/lib/supabase/queries';
 import Link from 'next/link';
-import { Building2, Clock, Users, ArrowRight, Eye } from 'lucide-react';
+import { Building2, Clock, Users, ArrowRight, Eye, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDate, getShortHoursSummary } from '@/lib/utils/formatters';
+import { computeOrgCompleteness } from '@/lib/utils/org-completeness';
 
 export default async function PortalPage() {
   const ctx = await requireOrganization();
@@ -31,6 +32,7 @@ export default async function PortalPage() {
   }
 
   const activeVolunteerCount = volunteerNeeds.filter((v) => v.is_active).length;
+  const completeness = computeOrgCompleteness(org);
 
   return (
     <div className="space-y-8">
@@ -43,6 +45,69 @@ export default async function PortalPage() {
           Manage your organization&apos;s listing and volunteer opportunities
         </p>
       </div>
+
+      {!completeness.isComplete && (
+        <div
+          className="rounded-lg border-l-4 p-5 flex items-start gap-4"
+          style={{
+            backgroundColor: completeness.criticalMissing.length > 0 ? '#FFFBEB' : '#FFFFFF',
+            borderColor: '#C4B8AD',
+            borderLeftColor: completeness.criticalMissing.length > 0 ? '#D97706' : '#0D7C8F',
+          }}
+        >
+          <div
+            className="h-10 w-10 rounded flex items-center justify-center flex-shrink-0"
+            style={{
+              backgroundColor:
+                completeness.criticalMissing.length > 0 ? '#FEF3C7' : '#E8F4F3',
+            }}
+          >
+            <AlertTriangle
+              className="h-5 w-5"
+              style={{ color: completeness.criticalMissing.length > 0 ? '#D97706' : '#0D7C8F' }}
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-2 mb-1">
+              <p className="font-semibold text-sm" style={{ color: '#1B2D3A' }}>
+                Your listing is {completeness.score}% complete
+              </p>
+              <span className="text-xs" style={{ color: '#8C7E72' }}>
+                {completeness.missing.length} {completeness.missing.length === 1 ? 'field' : 'fields'} missing
+              </span>
+            </div>
+            <p className="text-xs mb-3" style={{ color: '#4A5568' }}>
+              Data imported from the Master Database covers what was on file.
+              Fill in anything missing so community members can reach you.
+            </p>
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {completeness.missing.slice(0, 8).map((m) => (
+                <span
+                  key={m.key}
+                  className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded"
+                  style={{
+                    backgroundColor: m.tier === 'critical' ? '#FEF3C7' : m.tier === 'recommended' ? '#E8F4F3' : '#F5F0EB',
+                    color: m.tier === 'critical' ? '#B45309' : m.tier === 'recommended' ? '#0D7C8F' : '#8C7E72',
+                  }}
+                >
+                  {m.tier === 'critical' && '·'} {m.label}
+                </span>
+              ))}
+              {completeness.missing.length > 8 && (
+                <span className="text-xs px-2 py-1" style={{ color: '#8C7E72' }}>
+                  +{completeness.missing.length - 8} more
+                </span>
+              )}
+            </div>
+            <Link href="/portal/profile">
+              <Button size="sm" style={{ backgroundColor: '#0D7C8F', color: '#FFFFFF' }}>
+                Complete your profile
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Quick stats */}
       <div className="grid gap-4 md:grid-cols-3">

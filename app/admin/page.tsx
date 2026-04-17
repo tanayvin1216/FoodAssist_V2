@@ -6,24 +6,39 @@ import {
   MapPin,
   ArrowRight,
   Calendar,
+  AlertTriangle,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/server';
-import { getAdminStats, getDashboardSnapshot } from '@/lib/supabase/queries';
+import {
+  getAdminStats,
+  getDashboardSnapshot,
+  getOrganizations,
+} from '@/lib/supabase/queries';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
 import { ASSISTANCE_TYPE_LABELS } from '@/lib/utils/constants';
 import type { AssistanceType } from '@/types/database';
+import { computeOrgCompleteness } from '@/lib/utils/org-completeness';
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
-  const [stats, snapshot] = await Promise.all([
+  const [stats, snapshot, allOrgs] = await Promise.all([
     getAdminStats(supabase),
     getDashboardSnapshot(supabase),
+    getOrganizations(supabase, undefined, false),
   ]);
 
   const totalOrgs = stats.totalOrganizations;
+
+  const completenessReport = allOrgs
+    .map((org) => ({ org, result: computeOrgCompleteness(org) }))
+    .filter((entry) => !entry.result.isComplete)
+    .sort((a, b) => a.result.score - b.result.score);
+  const criticalGaps = completenessReport.filter(
+    (e) => e.result.criticalMissing.length > 0
+  );
 
   return (
     <div className="space-y-8">
@@ -138,6 +153,83 @@ export default async function AdminDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {completenessReport.length > 0 && (
+        <Card
+          style={{
+            backgroundColor: '#FFFFFF',
+            borderLeft: '4px solid #D97706',
+            borderColor: '#C4B8AD',
+          }}
+        >
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div
+                className="h-10 w-10 rounded flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: '#FEF3C7' }}
+              >
+                <AlertTriangle className="h-5 w-5" style={{ color: '#D97706' }} />
+              </div>
+              <div>
+                <CardTitle style={{ color: '#1B2D3A' }}>
+                  {criticalGaps.length > 0
+                    ? `${criticalGaps.length} ${criticalGaps.length === 1 ? 'organization needs' : 'organizations need'} attention`
+                    : `${completenessReport.length} ${completenessReport.length === 1 ? 'organization has' : 'organizations have'} incomplete data`}
+                </CardTitle>
+                <p className="mt-1 text-sm" style={{ color: '#8C7E72' }}>
+                  Imported rows often arrive with missing address, phone, or
+                  hours. Fill these in so community members can actually use
+                  each listing.
+                </p>
+              </div>
+            </div>
+            <Link href="/admin/organizations">
+              <Button
+                size="sm"
+                variant="outline"
+                style={{ borderColor: '#0D7C8F', color: '#0D7C8F' }}
+              >
+                View all
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y" style={{ borderColor: '#C4B8AD' }}>
+              {completenessReport.slice(0, 5).map(({ org, result }) => (
+                <li key={org.id} className="py-3 flex items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate" style={{ color: '#1B2D3A' }}>
+                      {org.name}
+                    </p>
+                    <p
+                      className="text-xs mt-0.5"
+                      style={{
+                        color: result.criticalMissing.length > 0 ? '#D97706' : '#8C7E72',
+                      }}
+                    >
+                      {result.missing.slice(0, 4).map((m) => m.label).join(' · ')}
+                      {result.missing.length > 4 && ` +${result.missing.length - 4} more`}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <span className="text-xs font-mono" style={{ color: '#8C7E72' }}>
+                      {result.score}%
+                    </span>
+                    <Link
+                      href={`/admin/organizations?edit=${org.id}`}
+                      className="text-xs font-medium hover:underline"
+                      style={{ color: '#0D7C8F' }}
+                    >
+                      Complete →
+                    </Link>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Services Breakdown */}

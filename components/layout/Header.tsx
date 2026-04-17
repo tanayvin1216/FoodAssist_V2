@@ -2,9 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown, Shield, Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { useBranding, useNavigation } from '@/contexts/SettingsContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function Header() {
   const pathname = usePathname();
@@ -46,7 +54,43 @@ export function Header() {
           })}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="hidden md:inline-flex items-center gap-1.5 h-9 px-4 text-sm font-medium text-navy border border-navy/20 rounded-full hover:bg-navy/5 transition-colors"
+                aria-label="Open sign-in menu"
+              >
+                Sign In
+                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="text-xs font-medium uppercase tracking-wider text-muted-text">
+                Staff &amp; Partners
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/portal/login" className="flex items-start gap-3 py-2 cursor-pointer">
+                  <Building2 className="h-4 w-4 mt-0.5 text-navy" />
+                  <div>
+                    <p className="text-sm font-medium text-navy">Organization Portal</p>
+                    <p className="text-xs text-muted-text">Manage your listing</p>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/admin/login" className="flex items-start gap-3 py-2 cursor-pointer">
+                  <Shield className="h-4 w-4 mt-0.5 text-navy" />
+                  <div>
+                    <p className="text-sm font-medium text-navy">Administrator</p>
+                    <p className="text-xs text-muted-text">Council staff only</p>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <button
             onClick={() => setOpen(!open)}
             className="md:hidden p-2 text-muted-text hover:text-navy transition-colors"
@@ -76,6 +120,25 @@ export function Header() {
                 </Link>
               );
             })}
+            <div className="mt-2 pt-3 border-t border-divider/50 flex flex-col gap-1">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-text mb-1">
+                Sign In
+              </p>
+              <Link
+                href="/portal/login"
+                onClick={() => setOpen(false)}
+                className="py-2 text-sm text-body-text hover:text-navy flex items-center gap-2"
+              >
+                <Building2 className="h-4 w-4" /> Organization Portal
+              </Link>
+              <Link
+                href="/admin/login"
+                onClick={() => setOpen(false)}
+                className="py-2 text-sm text-body-text hover:text-navy flex items-center gap-2"
+              >
+                <Shield className="h-4 w-4" /> Administrator
+              </Link>
+            </div>
           </nav>
         </div>
       )}
