@@ -41,6 +41,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/signup');
 
+  // Redirect unauthenticated users away from protected routes
   if (!user && (isPortalRoute || isAdminRoute)) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -48,6 +49,22 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Check admin role for admin routes
+  if (user && isAdminRoute) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.role !== 'admin') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Redirect authenticated users away from auth pages
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
