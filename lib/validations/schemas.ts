@@ -129,6 +129,91 @@ export const directoryFilterSchema = z.object({
   servedPopulations: z.array(z.enum(SERVED_POPULATIONS as [string, ...string[]])).optional(),
 });
 
+// ============== Settings patch schema ==============
+// Mirrors the 6 JSONB columns of the site_settings table.
+// Each group is a shallow partial — only supplied keys are merged.
+// Unknown top-level keys are rejected (strict).
+
+const navigationItemPatchSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  href: z.string(),
+  enabled: z.boolean(),
+  order: z.number().int(),
+  showInHeader: z.boolean(),
+  showInFooter: z.boolean(),
+});
+
+export const settingsPatchSchema = z
+  .object({
+    branding: z
+      .object({
+        siteName: z.string().optional(),
+        siteTagline: z.string().optional(),
+        logoAbbreviation: z.string().optional(),
+        primaryColor: z.string().optional(),
+        footerTagline: z.string().optional(),
+      })
+      .optional(),
+    contact: z
+      .object({
+        organizationName: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        emergencyPhone: z.string().optional(),
+        emergencyPhoneDisplay: z.string().optional(),
+        externalHelpUrl: z.string().url().optional(),
+        externalHelpLabel: z.string().optional(),
+      })
+      .optional(),
+    hero: z
+      .object({
+        locationBadge: z.string().optional(),
+        headline: z.string().optional(),
+        subtitle: z.string().optional(),
+        showStats: z.boolean().optional(),
+        statsLabels: z
+          .object({
+            locations: z.string().optional(),
+            towns: z.string().optional(),
+            services: z.string().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
+    emergency: z
+      .object({
+        enabled: z.boolean().optional(),
+        icon: z.enum(['heart', 'phone', 'alert']).optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        showPrimaryPhone: z.boolean().optional(),
+        showExternalHelp: z.boolean().optional(),
+      })
+      .optional(),
+    navigation: z
+      .object({
+        headerItems: z.array(navigationItemPatchSchema).optional(),
+        footerQuickLinks: z.array(navigationItemPatchSchema).optional(),
+        showSignIn: z.boolean().optional(),
+        signInLabel: z.string().optional(),
+      })
+      .optional(),
+    metadata: z
+      .object({
+        title: z.string().optional(),
+        description: z.string().optional(),
+        keywords: z.array(z.string()).optional(),
+      })
+      .optional(),
+  })
+  .strict(); // rejects unknown top-level keys
+
+export type SettingsPatch = z.infer<typeof settingsPatchSchema>;
+
 // Export types inferred from schemas
 export type OrganizationFormValues = z.infer<typeof organizationSchema>;
 export type CouncilDonationFormValues = z.infer<typeof councilDonationSchema>;

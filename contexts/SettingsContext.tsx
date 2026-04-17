@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 import { SiteSettings } from '@/types/settings';
 import { defaultSettings } from '@/config/default-settings';
 
@@ -12,6 +19,8 @@ interface SettingsContextType {
   updateHero: (hero: Partial<SiteSettings['hero']>) => void;
   updateEmergency: (emergency: Partial<SiteSettings['emergency']>) => void;
   updateNavigation: (navigation: Partial<SiteSettings['navigation']>) => void;
+  /** Re-fetch settings from the API. Used after a successful admin save. */
+  refresh: () => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextType | null>(null);
@@ -24,8 +33,32 @@ export function SettingsProvider({
   initialSettings?: SiteSettings;
 }) {
   const [settings, setSettings] = useState<SiteSettings>(
-    initialSettings || defaultSettings
+    initialSettings ?? defaultSettings
   );
+
+  const fetchSettings = useCallback(async () => {
+    try {
+      const res = await fetch('/api/settings', { cache: 'no-store' });
+      if (!res.ok) return; // keep current state on non-200
+      const json = (await res.json()) as { ok: boolean; settings: SiteSettings };
+      if (json.ok && json.settings) {
+        setSettings(json.settings);
+      }
+    } catch {
+      // Network failure — keep in-code defaults, do not crash
+    }
+  }, []);
+
+  // Hydrate from DB on mount.
+  // initialSettings (SSR-injected) skips the fetch to avoid a redundant round-trip.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!initialSettings) {
+      void fetchSettings();
+    }
+    // fetchSettings is stable (useCallback with no deps); omitted from array intentionally
+    // to run only once on mount.
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateSettings = (updates: Partial<SiteSettings>) => {
     setSettings((prev) => ({
@@ -87,6 +120,7 @@ export function SettingsProvider({
         updateHero,
         updateEmergency,
         updateNavigation,
+        refresh: fetchSettings,
       }}
     >
       {children}

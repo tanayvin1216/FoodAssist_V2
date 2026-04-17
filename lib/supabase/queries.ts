@@ -12,6 +12,7 @@ import {
 } from '@/types/database';
 import { SiteSettings } from '@/types/settings';
 import { defaultSettings } from '@/config/default-settings';
+import { SettingsPatch } from '@/lib/validations/schemas';
 
 // ============== Organizations ==============
 
@@ -429,7 +430,7 @@ export async function getSiteSettings(
  */
 export async function updateSiteSettings(
   supabase: SupabaseClient,
-  patch: Partial<SiteSettings>,
+  patch: SettingsPatch,
   updatedBy: string
 ): Promise<SiteSettings> {
   const current = await getSiteSettings(supabase);
