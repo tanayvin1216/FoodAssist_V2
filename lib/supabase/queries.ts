@@ -10,6 +10,8 @@ import {
   CouncilDonationFormData,
   VolunteerNeedFormData,
 } from '@/types/database';
+import { SiteSettings } from '@/types/settings';
+import { defaultSettings } from '@/config/default-settings';
 
 // ============== Organizations ==============
 
@@ -280,10 +282,11 @@ export async function updateProfile(
 // ============== Stats ==============
 
 export async function getAdminStats(supabase: SupabaseClient) {
-  const [orgs, donations, volunteers] = await Promise.all([
+  const [orgs, donations, volunteers, profiles] = await Promise.all([
     supabase.from('organizations').select('id, is_active', { count: 'exact' }),
     supabase.from('council_donations').select('amount'),
     supabase.from('volunteer_needs').select('id, is_active', { count: 'exact' }),
+    supabase.from('profiles').select('id', { count: 'exact' }),
   ]);
 
   const activeOrgs = orgs.data?.filter((o) => o.is_active).length || 0;
@@ -298,6 +301,7 @@ export async function getAdminStats(supabase: SupabaseClient) {
     totalDonationsAmount: totalDonations,
     totalDonationsCount: donations.data?.length || 0,
     activeVolunteerNeeds,
+    totalUsers: profiles.count || 0,
   };
 }
 
@@ -322,13 +326,14 @@ export async function getDashboardSnapshot(
 ): Promise<DashboardSnapshot> {
   const { data, error } = await supabase
     .from('organizations')
-    .select('id, name, town, last_updated, assistance_types, is_active');
+    .select('id, name, town, last_updated, assistance_types')
+    .eq('is_active', true);
 
   if (error) throw error;
 
   const orgs = (data ?? []) as Pick<
     Organization,
-    'id' | 'name' | 'town' | 'last_updated' | 'assistance_types' | 'is_active'
+    'id' | 'name' | 'town' | 'last_updated' | 'assistance_types'
   >[];
 
   const assistanceTypeCounts: Record<AssistanceType, number> = {
@@ -370,4 +375,94 @@ export async function getUniqueTowns(
 
   const towns = [...new Set(data?.map((d) => d.town))].sort();
   return towns;
+}
+
+// ============== Site Settings ==============
+
+interface SiteSettingsRow {
+  id: string;
+  branding: SiteSettings['branding'];
+  contact: SiteSettings['contact'];
+  hero: SiteSettings['hero'];
+  emergency: SiteSettings['emergency'];
+  navigation: SiteSettings['navigation'];
+  metadata: SiteSettings['metadata'];
+  updated_at: string;
+  updated_by: string | null;
+}
+
+function rowToSettings(row: SiteSettingsRow): SiteSettings {
+  return {
+    branding: row.branding,
+    contact: row.contact,
+    hero: row.hero,
+    emergency: row.emergency,
+    navigation: row.navigation,
+    metadata: row.metadata,
+    lastUpdated: row.updated_at,
+    updatedBy: row.updated_by ?? undefined,
+  };
+}
+
+/**
+ * Fetch the single site_settings row.
+ * Falls back to in-code defaults if the table returns no row.
+ */
+export async function getSiteSettings(
+  supabase: SupabaseClient
+): Promise<SiteSettings> {
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('*')
+    .limit(1)
+    .single();
+
+  if (error || !data) return { ...defaultSettings };
+
+  return rowToSettings(data as SiteSettingsRow);
+}
+
+/**
+ * Shallow-merge a partial settings patch into the existing row and persist.
+ * Each JSONB column is merged independently (existing keys are preserved
+ * unless explicitly overwritten by the patch).
+ */
+export async function updateSiteSettings(
+  supabase: SupabaseClient,
+  patch: Partial<SiteSettings>,
+  updatedBy: string
+): Promise<SiteSettings> {
+  const current = await getSiteSettings(supabase);
+
+  const merged = {
+    branding: patch.branding
+      ? { ...current.branding, ...patch.branding }
+      : current.branding,
+    contact: patch.contact
+      ? { ...current.contact, ...patch.contact }
+      : current.contact,
+    hero: patch.hero ? { ...current.hero, ...patch.hero } : current.hero,
+    emergency: patch.emergency
+      ? { ...current.emergency, ...patch.emergency }
+      : current.emergency,
+    navigation: patch.navigation
+      ? { ...current.navigation, ...patch.navigation }
+      : current.navigation,
+    metadata: patch.metadata
+      ? { ...current.metadata, ...patch.metadata }
+      : current.metadata,
+    updated_by: updatedBy,
+  };
+
+  // Single-row table: update every row (there is exactly one by schema constraint)
+  const { data, error } = await supabase
+    .from('site_settings')
+    .update(merged)
+    .not('id', 'is', null)
+    .select('*')
+    .single();
+
+  if (error || !data) throw error ?? new Error('Settings update returned no row');
+
+  return rowToSettings(data as SiteSettingsRow);
 }
