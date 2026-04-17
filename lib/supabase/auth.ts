@@ -77,6 +77,35 @@ export async function requireOrgUser(): Promise<SessionUser> {
 }
 
 /**
+ * Require organization role.
+ * Redirects to /login?error=unauthorized if:
+ *   - Not authenticated (requireAuth handles this, redirects to /login)
+ *   - Authenticated but role !== 'organization'
+ *   - profile.organization_id is null (user not linked to an org)
+ *
+ * Returns the session plus the verified organizationId so callers never
+ * need to null-check it.
+ */
+export async function requireOrganization(): Promise<
+  SessionUser & { organizationId: string }
+> {
+  const session = await requireAuth();
+
+  if (session.profile.role !== 'organization') {
+    redirect('/login?error=unauthorized');
+  }
+
+  if (!session.profile.organization_id) {
+    redirect('/login?error=unauthorized');
+  }
+
+  return {
+    ...session,
+    organizationId: session.profile.organization_id,
+  };
+}
+
+/**
  * Check if the current user has a specific role without redirecting.
  */
 export async function hasRole(role: UserRole): Promise<boolean> {
