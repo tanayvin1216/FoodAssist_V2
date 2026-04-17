@@ -157,10 +157,18 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
               href={getDirectionsUrl(address, town, zip)}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 w-full rounded-full h-11 text-sm font-medium text-white bg-navy hover:bg-navy-light transition-colors flex items-center justify-center gap-2"
+              className="mt-2 w-full rounded-2xl py-3 px-5 text-white bg-navy hover:bg-navy-light transition-colors flex items-center gap-3 text-left"
+              aria-label={`Open directions to ${address ? address + ', ' : ''}${town}${zip ? ' ' + zip : ''} in Google Maps`}
             >
-              <Navigation className="w-4 h-4" />
-              Get Directions
+              <Navigation className="w-4 h-4 flex-shrink-0" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-[10px] uppercase tracking-wider text-white/60">
+                  Get Directions
+                </span>
+                <span className="block text-sm font-medium truncate">
+                  {[address, town, zip].filter(Boolean).join(', ') || 'Carteret County, NC'}
+                </span>
+              </span>
             </a>
           </div>
         </div>
