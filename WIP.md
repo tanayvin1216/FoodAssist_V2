@@ -3,11 +3,11 @@
 ## Original Request
 Wire the entire FoodAssist V2 app to Supabase backend. Admin dashboard controls everything: orgs, donations, users, settings, file import. Public frontend reads from DB. Every change committed as conventional commits, user as sole author.
 
-## Current Step: Phase 2 kickoff
-## Active Story: Admin dashboard wiring (Steps 6-11)
-## Status: Phase 1 complete. Supabase connected, schema applied, auth wired.
-## Next Action: Architect writes Phase 2 plan; backend-dev implements admin CRUD.
-## Blockers: None — Supabase project `yhvbnvouifkwofvfooum` reachable via MCP.
+## Current Step: Phase 2 — Story 0 (security hotfix)
+## Active Story: Ship migration 004 — self-escalation trigger (blocks Chunk E later)
+## Status: Architect plan READY_FOR_BUILD at `docs/backend-integration/phase2-admin-crud.md`. Research brief at `docs/backend-integration/research-briefs.md`.
+## Next Action: backend-dev writes migration 004 + verification SQL; commit; then Chunk A foundations.
+## Blockers: SUPABASE_SERVICE_ROLE_KEY not provided (required for Chunk E user invite/delete). User supplied JWT-looking value `9976e990-…` which is the project JWT secret, not the service role API key. Ask user at Chunk E unless we descope to role-edit-only users page.
 
 ## Step Tracker
 
