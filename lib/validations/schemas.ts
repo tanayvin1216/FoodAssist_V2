@@ -69,14 +69,17 @@ export const organizationSchema = z.object({
   spanish_available: z.boolean(),
 });
 
-// Council donation schema
+// Council donation schema — form-facing fields only.
+// `recorded_by` is intentionally excluded: the server action injects it from
+// the authenticated session (session.profile.name ?? session.email) before INSERT.
+// This prevents client-side spoofing of the recorder identity.
+// See: docs/backend-integration/phase2-admin-crud.md, Page 4 "recorded_by decision".
 export const councilDonationSchema = z.object({
   organization_id: z.string().uuid('Invalid organization'),
   donation_date: z.string().min(1, 'Donation date is required'),
   amount: z.number().positive('Amount must be positive').optional(),
   donation_type: z.enum(['money', 'food', 'supplies', 'other']),
   description: z.string().min(1, 'Description is required').max(1000),
-  recorded_by: z.string().min(1, 'Recorder name is required'),
 });
 
 // Volunteer need schema

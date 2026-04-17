@@ -3,10 +3,10 @@
 ## Original Request
 Wire the entire FoodAssist V2 app to Supabase backend. Admin dashboard controls everything: orgs, donations, users, settings, file import. Public frontend reads from DB. Every change committed as conventional commits, user as sole author.
 
-## Current Step: Phase 2 — Chunk A foundations
-## Active Story: Chunk A — lib/supabase/admin.ts + .env.local.example + getDashboardSnapshot + donation schema fix
-## Status: Story 0 DONE. Migration 004 applied and verified. Advisor: no new security warnings (grant_pg_net_access and increment_schema_version are Supabase-internal; all 3 app-owned SECURITY DEFINER functions have search_path pinned).
-## Next Action: backend-dev implements Chunk A remaining items (admin.ts, getDashboardSnapshot, recorded_by removal from donation schema, .env.local.example update).
+## Current Step: Phase 2 — Chunk B
+## Active Story: Chunk B — Admin layout RSC/client split + dashboard page wiring + loading.tsx
+## Status: Chunk A DONE. admin.ts created, getDashboardSnapshot added, recorded_by removed from form schema, .env.example updated.
+## Next Action: backend-dev implements Chunk B (app/admin/layout.tsx → RSC + AdminShell.tsx, app/admin/page.tsx reads DB, app/admin/loading.tsx skeleton).
 ## Blockers: SUPABASE_SERVICE_ROLE_KEY not provided (required for Chunk E user invite/delete). User supplied JWT-looking value `9976e990-…` which is the project JWT secret, not the service role API key. Ask user at Chunk E unless we descope to role-edit-only users page.
 
 ## Step Tracker

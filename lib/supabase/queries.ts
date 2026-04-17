@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import {
   Organization,
+  AssistanceType,
   CouncilDonation,
   VolunteerNeed,
   Profile,
@@ -298,6 +299,61 @@ export async function getAdminStats(supabase: SupabaseClient) {
     totalDonationsCount: donations.data?.length || 0,
     activeVolunteerNeeds,
   };
+}
+
+// ============== Dashboard Snapshot ==============
+
+export interface DashboardSnapshot {
+  assistanceTypeCounts: Record<AssistanceType, number>;
+  recentOrganizations: Pick<Organization, 'id' | 'name' | 'town' | 'last_updated'>[];
+  townCount: number;
+}
+
+const ZERO_ASSISTANCE_COUNTS: Record<AssistanceType, number> = {
+  collection: 0,
+  hot_meals_pickup: 0,
+  hot_meals_delivery: 0,
+  staffed_pantry: 0,
+  self_serve_pantry: 0,
+};
+
+export async function getDashboardSnapshot(
+  supabase: SupabaseClient
+): Promise<DashboardSnapshot> {
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('id, name, town, last_updated, assistance_types, is_active');
+
+  if (error) throw error;
+
+  const orgs = (data ?? []) as Pick<
+    Organization,
+    'id' | 'name' | 'town' | 'last_updated' | 'assistance_types' | 'is_active'
+  >[];
+
+  const assistanceTypeCounts: Record<AssistanceType, number> = {
+    ...ZERO_ASSISTANCE_COUNTS,
+  };
+
+  for (const org of orgs) {
+    for (const type of org.assistance_types ?? []) {
+      if (type in assistanceTypeCounts) {
+        assistanceTypeCounts[type as AssistanceType] += 1;
+      }
+    }
+  }
+
+  const townCount = new Set(orgs.map((o) => o.town).filter(Boolean)).size;
+
+  const recentOrganizations = [...orgs]
+    .sort(
+      (a, b) =>
+        new Date(b.last_updated).getTime() - new Date(a.last_updated).getTime()
+    )
+    .slice(0, 5)
+    .map(({ id, name, town, last_updated }) => ({ id, name, town, last_updated }));
+
+  return { assistanceTypeCounts, recentOrganizations, townCount };
 }
 
 // ============== Towns ==============
