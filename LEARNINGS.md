@@ -50,6 +50,43 @@
 - Project ref `yhvbnvouifkwofvfooum` (URL `https://yhvbnvouifkwofvfooum.supabase.co`)
 - Anon key is in `.env.local` (gitignored) and is safe to ship client-side; service-role key has not been issued and is not required for Phase 1–6 since all admin writes go through user-session RLS
 
+### Self-escalation prevention via BEFORE UPDATE trigger (migration 004, applied 2026-04-17)
+
+**Pattern**: Column-level RLS emulated via SECURITY DEFINER trigger.
+
+**Problem class**: Postgres RLS cannot restrict which columns a policy applies to. A policy of
+`USING (auth.uid() = id)` on an UPDATE permits the user to change ANY column on their own row,
+including `role` and `organization_id`. This allows any authenticated user to self-promote to admin
+by hitting the Supabase REST endpoint directly with a valid JWT.
+
+**Fix**: BEFORE UPDATE trigger on the protected table that:
+1. Reads `auth.uid()` (returns NULL for service-role / superuser context — no JWT session).
+2. Short-circuits when NULL (service-role admin actions must not be blocked).
+3. Short-circuits when neither sensitive column changed (avoids unnecessary lookup).
+4. Queries `profiles.role` directly rather than trusting JWT claims (JWT can lag DB state).
+5. Raises `insufficient_privilege` exception if non-admin attempts to change `role` or `organization_id`.
+
+**Function hardening**: `SECURITY DEFINER` with `SET search_path = public, pg_temp` (same pattern
+as migration 003) prevents search_path manipulation attacks on the trigger function itself.
+
+**Defense stack**: Three concurrent defenses in this project:
+- Middleware blocks non-admins from `/admin/*` (UX gate).
+- Every Server Action opens with `await requireAdmin()` (belt-and-braces app layer).
+- DB trigger `profiles_prevent_self_escalation` (final backstop, cannot be bypassed by app code).
+
+**Key insight on service-role pass-through**: When `auth.uid()` returns NULL, the calling context
+is the service-role or postgres superuser — not a JWT-authenticated end user. These callers bypass
+RLS entirely anyway; the trigger NULL check ensures they also bypass the trigger guard without
+needing to inspect their role.
+
+**Verification queries** (run after applying):
+```sql
+SELECT tgname, tgtype FROM pg_trigger WHERE tgrelid = 'public.profiles'::regclass;
+-- tgtype 19 = BEFORE UPDATE ROW (bits: 1=ROW | 2=BEFORE | 16=UPDATE)
+SELECT proconfig FROM pg_proc WHERE proname = 'prevent_self_role_change';
+-- Expected: {search_path=public,pg_temp}
+```
+
 ### Branch discipline
 - `backendIntegrate` has pre-existing uncommitted frontend-redesign work (8+ files in `components/directory`, `components/layout`, `app/(public)`, `app/globals.css`)
 - These belong on a different branch — never stage them during backend commits. Use explicit `git add <path>` per commit, never `git add .` or `git add -A`.

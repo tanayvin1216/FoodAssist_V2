@@ -3,10 +3,10 @@
 ## Original Request
 Wire the entire FoodAssist V2 app to Supabase backend. Admin dashboard controls everything: orgs, donations, users, settings, file import. Public frontend reads from DB. Every change committed as conventional commits, user as sole author.
 
-## Current Step: Phase 2 — Story 0 (security hotfix)
-## Active Story: Ship migration 004 — self-escalation trigger (blocks Chunk E later)
-## Status: Architect plan READY_FOR_BUILD at `docs/backend-integration/phase2-admin-crud.md`. Research brief at `docs/backend-integration/research-briefs.md`.
-## Next Action: backend-dev writes migration 004 + verification SQL; commit; then Chunk A foundations.
+## Current Step: Phase 2 — Chunk A foundations
+## Active Story: Chunk A — lib/supabase/admin.ts + .env.local.example + getDashboardSnapshot + donation schema fix
+## Status: Story 0 DONE. Migration 004 applied and verified. Advisor: no new security warnings (grant_pg_net_access and increment_schema_version are Supabase-internal; all 3 app-owned SECURITY DEFINER functions have search_path pinned).
+## Next Action: backend-dev implements Chunk A remaining items (admin.ts, getDashboardSnapshot, recorded_by removal from donation schema, .env.local.example update).
 ## Blockers: SUPABASE_SERVICE_ROLE_KEY not provided (required for Chunk E user invite/delete). User supplied JWT-looking value `9976e990-…` which is the project JWT secret, not the service role API key. Ask user at Chunk E unless we descope to role-edit-only users page.
 
 ## Step Tracker
@@ -20,6 +20,7 @@ Wire the entire FoodAssist V2 app to Supabase backend. Admin dashboard controls 
 - [x] Step 5: Auth pages fixed — sign-out uses supabase.auth.signOut(), demo login removed
 
 ### Phase 2: Admin Dashboard Wiring
+- [x] Story 0: Security hotfix — migration 004 self-escalation trigger (applied 2026-04-17)
 - [ ] Step 6: Admin layout auth guard
 - [ ] Step 7: Admin dashboard stats from DB
 - [ ] Step 8: Admin organizations CRUD
