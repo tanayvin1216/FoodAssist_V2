@@ -12,6 +12,7 @@ import {
   MoreHorizontal,
   CheckCircle2,
   XCircle,
+  Upload,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -48,6 +49,7 @@ import {
   deleteOrganizationAction,
   toggleOrgActiveAction,
 } from './actions';
+import { ImportOrganizationsDialog } from './ImportOrganizationsDialog';
 
 interface OrganizationsClientProps {
   initialOrgs: Organization[];
@@ -60,6 +62,7 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
   const [search, setSearch] = useState('');
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Organization | null>(null);
   const [toggleTarget, setToggleTarget] = useState<Organization | null>(null);
 
@@ -136,17 +139,28 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
           <h1 className="text-2xl font-bold text-lighthouse">Organizations</h1>
           <p className="text-driftwood mt-1">Manage food assistance organizations</p>
         </div>
-        <Button
-          className="bg-ocean hover:bg-ocean-deep text-white"
-          onClick={() => {
-            setEditingOrg(null);
-            setIsFormDialogOpen(true);
-          }}
-          disabled={isPending}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Organization
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="border-ocean text-ocean hover:bg-seafoam"
+            onClick={() => setIsImportDialogOpen(true)}
+            disabled={isPending}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Import XLS/CSV
+          </Button>
+          <Button
+            className="bg-ocean hover:bg-ocean-deep text-white"
+            onClick={() => {
+              setEditingOrg(null);
+              setIsFormDialogOpen(true);
+            }}
+            disabled={isPending}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Organization
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -309,6 +323,12 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Import Dialog */}
+      <ImportOrganizationsDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+      />
 
       {/* Toggle Active Confirm Dialog */}
       <Dialog open={!!toggleTarget} onOpenChange={(open) => !open && setToggleTarget(null)}>
