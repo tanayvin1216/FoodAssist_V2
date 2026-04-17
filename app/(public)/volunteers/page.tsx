@@ -1,14 +1,22 @@
+/**
+ * Volunteers page — Server Component.
+ * Fetches active volunteer needs from Supabase; each need includes embedded
+ * organization data (id + name) via the joined select in getVolunteerNeeds.
+ * Empty-state (zero needs) is rendered inline below.
+ */
 import Link from 'next/link';
 import { Users, Clock, Mail, Calendar, ArrowRight } from 'lucide-react';
-import { sampleVolunteerNeeds, sampleOrganizations } from '@/lib/utils/sampleData';
+import { createClient } from '@/lib/supabase/server';
+import { getVolunteerNeeds } from '@/lib/supabase/queries';
+import { Organization } from '@/types/database';
 import { formatDate } from '@/lib/utils/formatters';
 
-export default function VolunteersPage() {
-  const activeNeeds = sampleVolunteerNeeds.filter((v) => v.is_active);
+export const revalidate = 3600;
 
-  const getOrganization = (id: string) => {
-    return sampleOrganizations.find((o) => o.id === id);
-  };
+export default async function VolunteersPage() {
+  const supabase = await createClient();
+  // activeOnly=true is the default; the query also embeds organization:{id,name}
+  const activeNeeds = await getVolunteerNeeds(supabase);
 
   return (
     <div className="min-h-screen">
@@ -57,7 +65,8 @@ export default function VolunteersPage() {
               </p>
 
               {activeNeeds.map((need) => {
-                const org = getOrganization(need.organization_id);
+                // organization is embedded by getVolunteerNeeds via joined select
+                const org: Pick<Organization, 'id' | 'name'> | undefined = need.organization;
                 return (
                   <div key={need.id} className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">

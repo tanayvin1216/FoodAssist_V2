@@ -1,3 +1,8 @@
+/**
+ * Organization detail page — Server Component.
+ * Fetches a single active organization by id from Supabase.
+ * Calls notFound() when the id is not found (PGRST116) or the org is inactive.
+ */
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -12,7 +17,8 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
-import { sampleOrganizations } from '@/lib/utils/sampleData';
+import { createClient } from '@/lib/supabase/server';
+import { getOrganizationById } from '@/lib/supabase/queries';
 import {
   ASSISTANCE_TYPE_LABELS,
   DONATION_TYPE_LABELS,
@@ -27,6 +33,8 @@ import {
   formatDate,
 } from '@/lib/utils/formatters';
 
+export const revalidate = 3600;
+
 interface OrganizationPageProps {
   params: Promise<{ id: string }>;
 }
@@ -34,9 +42,10 @@ interface OrganizationPageProps {
 export default async function OrganizationPage({ params }: OrganizationPageProps) {
   const { id } = await params;
 
-  const organization = sampleOrganizations.find((org) => org.id === id);
+  const supabase = await createClient();
+  const organization = await getOrganizationById(supabase, id);
 
-  if (!organization) {
+  if (!organization || !organization.is_active) {
     notFound();
   }
 
