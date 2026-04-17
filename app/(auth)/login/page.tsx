@@ -52,16 +52,10 @@ function LoginForm() {
     }
   };
 
-  // Demo login for testing without Supabase
-  const handleDemoLogin = () => {
-    toast.success('Demo login - redirecting...');
-    router.push('/portal/dashboard');
-  };
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-center">Sign In</CardTitle>
+        <CardTitle className="text-center text-navy text-lg">Sign In</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -94,7 +88,7 @@ function LoginForm() {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin text-navy" />
                 Signing in...
               </>
             ) : (
@@ -103,29 +97,9 @@ function LoginForm() {
           </Button>
         </form>
 
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">Or</span>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full mt-4"
-            onClick={handleDemoLogin}
-          >
-            Demo Login (No Supabase Required)
-          </Button>
-        </div>
-
-        <p className="mt-6 text-center text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-muted-text">
           Don&apos;t have an account?{' '}
-          <Link href="/signup" className="text-blue-600 hover:underline">
+          <Link href="/signup" className="text-navy hover:underline">
             Sign up
           </Link>
         </p>
@@ -139,7 +113,7 @@ export default function LoginPage() {
     <Suspense fallback={
       <Card>
         <CardContent className="py-8">
-          <Loader2 className="w-8 h-8 mx-auto animate-spin text-blue-600" />
+          <Loader2 className="w-8 h-8 mx-auto animate-spin text-navy" />
         </CardContent>
       </Card>
     }>
