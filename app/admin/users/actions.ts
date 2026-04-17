@@ -6,18 +6,23 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { UserRole } from '@/types/database';
 
-// ─── Invite ──────────────────────────────────────────────────────────────────
+// ─── Create User ──────────────────────────────────────────────────────────────
 
-export async function inviteUserAction(input: {
+export async function createUserAction(input: {
   email: string;
+  password: string;
   name: string;
   role: 'admin' | 'organization';
   organizationId?: string;
-}): Promise<{ ok: true; userId: string } | { ok: false; error: string }> {
+}): Promise<{ ok: true; userId: string; email: string } | { ok: false; error: string }> {
   await requireAdmin();
 
   if (input.role === 'organization' && !input.organizationId) {
-    return { ok: false, error: 'Organization required when inviting an organization user.' };
+    return { ok: false, error: 'Organization required when creating an organization user.' };
+  }
+
+  if (input.password.length < 8) {
+    return { ok: false, error: 'Password must be at least 8 characters.' };
   }
 
   let adminClient;
@@ -27,31 +32,30 @@ export async function inviteUserAction(input: {
     return {
       ok: false,
       error:
-        'Admin user invites are not configured yet. Ask your deployer to add SUPABASE_SERVICE_ROLE_KEY.',
+        'User creation is not configured yet. Add SUPABASE_SERVICE_ROLE_KEY to .env.local.',
     };
   }
 
-  const { data: inviteData, error: inviteError } =
-    await adminClient.auth.admin.inviteUserByEmail(input.email, {
-      data: { name: input.name },
+  const { data: createData, error: createError } =
+    await adminClient.auth.admin.createUser({
+      email: input.email,
+      password: input.password,
+      email_confirm: true,
+      user_metadata: { name: input.name },
     });
 
-  if (inviteError || !inviteData?.user) {
-    // Map GoTrue error messages to user-safe equivalents
-    const raw = inviteError?.message ?? '';
+  if (createError || !createData?.user) {
+    const raw = createError?.message ?? '';
     if (raw.toLowerCase().includes('already been registered') || raw.toLowerCase().includes('already exists')) {
       return { ok: false, error: 'A user with that email already exists.' };
     }
     if (raw.toLowerCase().includes('invalid email')) {
       return { ok: false, error: 'The email address provided is not valid.' };
     }
-    if (raw.toLowerCase().includes('rate limit')) {
-      return { ok: false, error: 'Too many invites sent recently. Please wait a moment and try again.' };
-    }
-    return { ok: false, error: 'Failed to send the invitation. Please try again.' };
+    return { ok: false, error: 'Failed to create the user. Please try again.' };
   }
 
-  const userId = inviteData.user.id;
+  const userId = createData.user.id;
 
   // The handle_new_user trigger inserts a profile with role='public'.
   // Update it to the correct role and org assignment.
@@ -65,15 +69,14 @@ export async function inviteUserAction(input: {
     .eq('id', userId);
 
   if (updateError) {
-    // Invite went out but profile update failed — log and surface
     return {
       ok: false,
-      error: `Invite sent, but could not set the user role. Contact your database administrator.`,
+      error: `User created but could not set the role. Contact your database administrator.`,
     };
   }
 
   revalidatePath('/admin/users');
-  return { ok: true, userId };
+  return { ok: true, userId, email: input.email };
 }
 
 // ─── Update Role ─────────────────────────────────────────────────────────────

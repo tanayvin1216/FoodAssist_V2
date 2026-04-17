@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import {
   Plus,
   Trash2,
@@ -9,6 +9,9 @@ import {
   User,
   Pencil,
   AlertTriangle,
+  Copy,
+  Check,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +43,7 @@ import { toast } from 'sonner';
 import { formatDate } from '@/lib/utils/formatters';
 import type { Profile, Organization, UserRole } from '@/types/database';
 import {
-  inviteUserAction,
+  createUserAction,
   updateUserRoleAction,
   deleteUserAction,
 } from './actions';
@@ -71,6 +74,16 @@ const ROLE_CONFIG: Record<
   },
 };
 
+// ─── Password generator ───────────────────────────────────────────────────────
+
+function generatePassword(): string {
+  const chars =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+  const arr = new Uint8Array(18);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => chars[b % chars.length]).join('');
+}
+
 // ─── Props ───────────────────────────────────────────────────────────────────
 
 interface UsersClientProps {
@@ -79,16 +92,164 @@ interface UsersClientProps {
   currentAdminId: string;
 }
 
-// ─── Invite Dialog ────────────────────────────────────────────────────────────
+// ─── Credentials Modal ────────────────────────────────────────────────────────
 
-function InviteDialog({
+function CredentialsModal({
+  open,
+  name,
+  email,
+  password,
+  onDone,
+}: {
+  open: boolean;
+  name: string;
+  email: string;
+  password: string;
+  onDone: () => void;
+}) {
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedPassword, setCopiedPassword] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
+
+  const copyText = useCallback(
+    async (text: string, setter: (v: boolean) => void) => {
+      await navigator.clipboard.writeText(text);
+      setter(true);
+      setTimeout(() => setter(false), 2000);
+    },
+    []
+  );
+
+  const copyAll = useCallback(async () => {
+    const loginUrl =
+      typeof window !== 'undefined' ? `${window.location.origin}/admin/login` : '/admin/login';
+    const text = `Name: ${name}\nEmail: ${email}\nPassword: ${password}\nSign in at: ${loginUrl}`;
+    await navigator.clipboard.writeText(text);
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2000);
+  }, [name, email, password]);
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onDone(); }}>
+      <DialogContent
+        className="bg-white border border-[#C4B8AD] rounded-lg shadow-none max-w-md"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
+        <DialogHeader>
+          <DialogTitle className="text-[#1B2D3A] font-semibold text-lg">
+            User Created
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 mt-2">
+          <p className="text-sm text-[#4A5568] border-l-2 border-amber-400 pl-3 leading-relaxed">
+            Send these credentials to <strong>{name}</strong>. The password is shown once
+            and cannot be recovered — copy it now.
+          </p>
+
+          {/* Email row */}
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-wider text-[#8C7E72] font-medium">Email</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-sm text-[#1B2D3A] bg-[#F5F0EB] border border-[#C4B8AD] rounded px-3 py-2 font-mono truncate">
+                {email}
+              </code>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => copyText(email, setCopiedEmail)}
+                aria-label="Copy email"
+                className="text-[#8C7E72] hover:text-[#1B2D3A] hover:bg-[#F5F0EB] shrink-0"
+              >
+                {copiedEmail ? <Check className="w-4 h-4 text-[#16A34A]" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+
+          {/* Password row */}
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-wider text-[#8C7E72] font-medium">Password</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-sm text-[#1B2D3A] bg-[#F5F0EB] border border-[#C4B8AD] rounded px-3 py-2 font-mono truncate">
+                {password}
+              </code>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => copyText(password, setCopiedPassword)}
+                aria-label="Copy password"
+                className="text-[#8C7E72] hover:text-[#1B2D3A] hover:bg-[#F5F0EB] shrink-0"
+              >
+                {copiedPassword ? <Check className="w-4 h-4 text-[#16A34A]" /> : <Copy className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+
+          <p className="text-xs text-[#8C7E72]">
+            They can sign in at <span className="font-mono">/admin/login</span> or{' '}
+            <span className="font-mono">/portal/login</span>.
+          </p>
+
+          <div className="flex justify-between gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={copyAll}
+              className="border-[#C4B8AD] text-[#4A5568] hover:bg-[#F5F0EB] min-h-10 text-sm"
+            >
+              {copiedAll ? (
+                <><Check className="w-4 h-4 mr-2 text-[#16A34A]" />Copied</>
+              ) : (
+                <><Copy className="w-4 h-4 mr-2" />Copy All</>
+              )}
+            </Button>
+            <Button
+              type="button"
+              onClick={onDone}
+              className="bg-[#1B2D3A] hover:bg-[#0D7C8F] text-white border-0 min-h-10"
+            >
+              Done
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Create User Dialog ───────────────────────────────────────────────────────
+
+function CreateUserDialog({
   organizations,
 }: {
   organizations: Pick<Organization, 'id' | 'name'>[];
 }) {
   const [open, setOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'admin' | 'organization'>('organization');
+  const [password, setPassword] = useState('');
   const [isPending, startTransition] = useTransition();
+
+  // Credentials modal state — shown once after success
+  const [createdUser, setCreatedUser] = useState<{
+    name: string;
+    email: string;
+    password: string;
+  } | null>(null);
+
+  const handleGeneratePassword = () => {
+    setPassword(generatePassword());
+  };
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      // Reset form state on close
+      setSelectedRole('organization');
+      setPassword('');
+    }
+    setOpen(next);
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -97,10 +258,12 @@ function InviteDialog({
     const name = (formData.get('name') as string).trim();
     const role = formData.get('role') as 'admin' | 'organization';
     const organizationId = formData.get('organization_id') as string | null;
+    const pw = (formData.get('password') as string);
 
     startTransition(async () => {
-      const result = await inviteUserAction({
+      const result = await createUserAction({
         email,
+        password: pw,
         name,
         role,
         organizationId: organizationId ?? undefined,
@@ -111,122 +274,169 @@ function InviteDialog({
         return;
       }
 
-      toast.success('Invitation sent. The user will receive an email to set their password.');
+      toast.success('User created.');
       setOpen(false);
+      // Show credentials modal after dialog closes
+      setCreatedUser({ name, email: result.email, password: pw });
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          className="bg-[#0D7C8F] hover:bg-[#0A6070] text-white border-0 min-h-11 px-4 text-sm font-medium"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Invite User
-        </Button>
-      </DialogTrigger>
+    <>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>
+          <Button
+            className="bg-[#0D7C8F] hover:bg-[#0A6070] text-white border-0 min-h-11 px-4 text-sm font-medium"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create User
+          </Button>
+        </DialogTrigger>
 
-      <DialogContent className="bg-white border border-[#C4B8AD] rounded-lg shadow-none max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-[#1B2D3A] font-semibold text-lg">
-            Invite New User
-          </DialogTitle>
-        </DialogHeader>
+        <DialogContent className="bg-white border border-[#C4B8AD] rounded-lg shadow-none max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#1B2D3A] font-semibold text-lg">
+              Create New User
+            </DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="invite-name" className="text-sm font-medium text-[#1B2D3A]">
-              Full Name <span aria-hidden="true">*</span>
-            </Label>
-            <Input
-              id="invite-name"
-              name="name"
-              required
-              placeholder="Jane Smith"
-              className="border-[#C4B8AD] focus-visible:ring-[#0D7C8F] min-h-10"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="invite-email" className="text-sm font-medium text-[#1B2D3A]">
-              Email Address <span aria-hidden="true">*</span>
-            </Label>
-            <Input
-              id="invite-email"
-              name="email"
-              type="email"
-              required
-              placeholder="user@example.org"
-              className="border-[#C4B8AD] focus-visible:ring-[#0D7C8F] min-h-10"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="invite-role" className="text-sm font-medium text-[#1B2D3A]">
-              Role <span aria-hidden="true">*</span>
-            </Label>
-            <Select
-              name="role"
-              value={selectedRole}
-              onValueChange={(v) => setSelectedRole(v as 'admin' | 'organization')}
-            >
-              <SelectTrigger id="invite-role" className="border-[#C4B8AD] focus:ring-[#0D7C8F] min-h-10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="organization">Organization</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {selectedRole === 'organization' && (
+          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
             <div className="space-y-1.5">
-              <Label htmlFor="invite-org" className="text-sm font-medium text-[#1B2D3A]">
-                Organization <span aria-hidden="true">*</span>
+              <Label htmlFor="create-name" className="text-sm font-medium text-[#1B2D3A]">
+                Full Name <span aria-hidden="true">*</span>
               </Label>
-              <Select name="organization_id" required>
-                <SelectTrigger id="invite-org" className="border-[#C4B8AD] focus:ring-[#0D7C8F] min-h-10">
-                  <SelectValue placeholder="Select organization" />
+              <Input
+                id="create-name"
+                name="name"
+                required
+                placeholder="Jane Smith"
+                className="border-[#C4B8AD] focus-visible:ring-[#0D7C8F] min-h-10"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="create-email" className="text-sm font-medium text-[#1B2D3A]">
+                Email Address <span aria-hidden="true">*</span>
+              </Label>
+              <Input
+                id="create-email"
+                name="email"
+                type="email"
+                required
+                placeholder="user@example.org"
+                className="border-[#C4B8AD] focus-visible:ring-[#0D7C8F] min-h-10"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="create-password" className="text-sm font-medium text-[#1B2D3A]">
+                Password <span aria-hidden="true">*</span>
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="create-password"
+                  name="password"
+                  type="text"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 8 characters"
+                  className="flex-1 border-[#C4B8AD] focus-visible:ring-[#0D7C8F] min-h-10 font-mono text-sm"
+                  autoComplete="off"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGeneratePassword}
+                  title="Generate secure password"
+                  aria-label="Generate secure password"
+                  className="border-[#C4B8AD] text-[#4A5568] hover:bg-[#F5F0EB] min-h-10 px-3 shrink-0"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-[#8C7E72]">
+                Use the generate button for a secure 18-character password.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="create-role" className="text-sm font-medium text-[#1B2D3A]">
+                Role <span aria-hidden="true">*</span>
+              </Label>
+              <Select
+                name="role"
+                value={selectedRole}
+                onValueChange={(v) => setSelectedRole(v as 'admin' | 'organization')}
+              >
+                <SelectTrigger id="create-role" className="border-[#C4B8AD] focus:ring-[#0D7C8F] min-h-10">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="organization">Organization</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          )}
 
-          <p className="text-xs text-[#8C7E72] border-l-2 border-[#C4B8AD] pl-3 leading-relaxed">
-            The user will receive an email invitation to set their password. The
-            account will be created immediately with the role you select.
-          </p>
+            {selectedRole === 'organization' && (
+              <div className="space-y-1.5">
+                <Label htmlFor="create-org" className="text-sm font-medium text-[#1B2D3A]">
+                  Organization <span aria-hidden="true">*</span>
+                </Label>
+                <Select name="organization_id" required>
+                  <SelectTrigger id="create-org" className="border-[#C4B8AD] focus:ring-[#0D7C8F] min-h-10">
+                    <SelectValue placeholder="Select organization" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={isPending}
-              className="border-[#C4B8AD] text-[#4A5568] hover:bg-[#F5F0EB] min-h-10"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="bg-[#0D7C8F] hover:bg-[#0A6070] text-white border-0 min-h-10"
-            >
-              {isPending ? 'Sending…' : 'Send Invitation'}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <p className="text-xs text-[#8C7E72] border-l-2 border-[#C4B8AD] pl-3 leading-relaxed">
+              The account is created immediately. You will be shown the credentials
+              once — copy them before closing.
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={isPending}
+                className="border-[#C4B8AD] text-[#4A5568] hover:bg-[#F5F0EB] min-h-10"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="bg-[#0D7C8F] hover:bg-[#0A6070] text-white border-0 min-h-10"
+              >
+                {isPending ? 'Creating…' : 'Create User'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {createdUser && (
+        <CredentialsModal
+          open={!!createdUser}
+          name={createdUser.name}
+          email={createdUser.email}
+          password={createdUser.password}
+          onDone={() => setCreatedUser(null)}
+        />
+      )}
+    </>
   );
 }
 
@@ -489,7 +699,7 @@ export default function UsersClient({
             Manage admin and organization accounts for Carteret County Food &amp; Health Council.
           </p>
         </div>
-        <InviteDialog organizations={organizations} />
+        <CreateUserDialog organizations={organizations} />
       </header>
 
       {/* Stats row */}
@@ -578,7 +788,7 @@ export default function UsersClient({
                     colSpan={6}
                     className="text-center text-[#8C7E72] py-12 text-sm"
                   >
-                    No users found. Invite someone to get started.
+                    No users found. Create one to get started.
                   </TableCell>
                 </TableRow>
               )}
@@ -612,7 +822,7 @@ export default function UsersClient({
                     </TableCell>
 
                     <TableCell className="text-[#4A5568]">
-                      {getOrgName(user.organization_id)}
+                      {getOrgName(user.organization_id ?? undefined)}
                     </TableCell>
 
                     <TableCell className="text-sm text-[#8C7E72]">
