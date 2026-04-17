@@ -12,6 +12,7 @@ import {
   Menu,
   Settings,
   Eye,
+  HandHeart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Organizations', href: '/admin/organizations', icon: Building2 },
   { name: 'Council Donations', href: '/admin/donations', icon: Gift },
+  { name: 'Volunteers', href: '/admin/volunteers', icon: HandHeart },
   { name: 'Reports', href: '/admin/reports', icon: FileText },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
