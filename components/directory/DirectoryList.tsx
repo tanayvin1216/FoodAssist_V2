@@ -5,6 +5,7 @@ import { Organization, DirectoryFilters } from '@/types/database';
 import { FilterPanel } from './FilterPanel';
 import { OrgCardSimple } from './OrgCardSimple';
 import { useTranslation } from '@/contexts/LocaleContext';
+import { LanguageToggle } from '@/components/layout/LanguageToggle';
 import {
   Loader2,
   Search,
@@ -200,27 +201,30 @@ export function DirectoryList({
           </p>
         </div>
 
-        <div className="flex bg-tag-bg rounded-full p-1">
-          <button
-            onClick={() => toggleScrollView('carousel')}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              scrollView === 'carousel'
-                ? 'bg-navy text-white shadow-sm'
-                : 'text-body-text hover:text-navy'
-            }`}
-          >
-            {t('dir.view.card')}
-          </button>
-          <button
-            onClick={() => toggleScrollView('list')}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              scrollView === 'list'
-                ? 'bg-navy text-white shadow-sm'
-                : 'text-body-text hover:text-navy'
-            }`}
-          >
-            {t('dir.view.list')}
-          </button>
+        <div className="flex items-center gap-2">
+          <LanguageToggle />
+          <div className="flex bg-tag-bg rounded-full p-1">
+            <button
+              onClick={() => toggleScrollView('carousel')}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                scrollView === 'carousel'
+                  ? 'bg-navy text-white shadow-sm'
+                  : 'text-body-text hover:text-navy'
+              }`}
+            >
+              {t('dir.view.card')}
+            </button>
+            <button
+              onClick={() => toggleScrollView('list')}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                scrollView === 'list'
+                  ? 'bg-navy text-white shadow-sm'
+                  : 'text-body-text hover:text-navy'
+              }`}
+            >
+              {t('dir.view.list')}
+            </button>
+          </div>
         </div>
       </div>
 

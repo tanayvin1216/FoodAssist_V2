@@ -6,7 +6,6 @@ import { Menu, X, ChevronDown, Shield, Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { useBranding, useNavigation } from '@/contexts/SettingsContext';
 import { useTranslation } from '@/contexts/LocaleContext';
-import { LanguageToggle } from '@/components/layout/LanguageToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,8 +57,6 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <LanguageToggle className="hidden md:inline-flex" size="sm" />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -126,8 +123,7 @@ export function Header() {
                 </Link>
               );
             })}
-            <div className="mt-2 pt-3 border-t border-divider/50 flex flex-col gap-3">
-              <LanguageToggle size="sm" />
+            <div className="mt-2 pt-3 border-t border-divider/50 flex flex-col gap-1">
               <p className="text-xs font-medium uppercase tracking-wider text-muted-text mb-1">
                 {t('nav.signIn')}
               </p>
