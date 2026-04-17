@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2, Calendar, DollarSign } from 'lucide-react';
@@ -32,6 +33,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -53,9 +56,11 @@ interface DonationsClientProps {
 }
 
 export function DonationsClient({ initialDonations, organizations }: DonationsClientProps) {
+  const router = useRouter();
   const [donations, setDonations] = useState<CouncilDonation[]>(initialDonations);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [filterOrg, setFilterOrg] = useState<string>('all');
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<CouncilDonationFormValues>({
@@ -92,16 +97,19 @@ export function DonationsClient({ initialDonations, organizations }: DonationsCl
     });
   }
 
-  function handleDelete(id: string) {
-    if (!confirm('Delete this donation record?')) return;
+  function confirmDelete() {
+    const id = pendingDeleteId;
+    if (!id) return;
     startTransition(async () => {
       const result = await deleteDonationAction(id);
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
+      setPendingDeleteId(null);
       setDonations((prev) => prev.filter((d) => d.id !== id));
       toast.success('Donation deleted.');
+      router.refresh();
     });
   }
 
@@ -363,7 +371,7 @@ export function DonationsClient({ initialDonations, organizations }: DonationsCl
                       size="icon"
                       disabled={isPending}
                       className="text-red-600 hover:text-red-700"
-                      onClick={() => handleDelete(donation.id)}
+                      onClick={() => setPendingDeleteId(donation.id)}
                       aria-label="Delete donation"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -386,6 +394,39 @@ export function DonationsClient({ initialDonations, organizations }: DonationsCl
           </Table>
         </CardContent>
       </Card>
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle style={{ color: '#1B2D3A' }}>Delete donation?</DialogTitle>
+            <DialogDescription style={{ color: '#8C7E72' }}>
+              This cannot be undone. The donation record will be permanently removed.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setPendingDeleteId(null)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              disabled={isPending}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {isPending ? 'Deleting…' : 'Delete donation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

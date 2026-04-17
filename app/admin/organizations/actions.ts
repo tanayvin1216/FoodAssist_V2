@@ -14,11 +14,12 @@ import { OrganizationFormData } from '@/types/database';
 export async function createOrganizationAction(
   data: OrganizationFormValues
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  await requireAdmin();
   try {
-    await requireAdmin();
     const supabase = await createClient();
     const org = await createOrganization(supabase, data as unknown as OrganizationFormData);
     revalidatePath('/admin/organizations');
+    revalidatePath('/admin');
     revalidatePath('/');
     return { ok: true, id: org.id };
   } catch (error) {
@@ -31,8 +32,8 @@ export async function updateOrganizationAction(
   id: string,
   data: Partial<OrganizationFormValues>
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
   try {
-    await requireAdmin();
     const supabase = await createClient();
     await updateOrganization(supabase, id, data as unknown as Partial<OrganizationFormData>);
     revalidatePath('/admin/organizations');
@@ -48,11 +49,12 @@ export async function updateOrganizationAction(
 export async function deleteOrganizationAction(
   id: string
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
   try {
-    await requireAdmin();
     const supabase = await createClient();
     await deleteOrganization(supabase, id);
     revalidatePath('/admin/organizations');
+    revalidatePath('/admin');
     revalidatePath('/');
     revalidatePath(`/organization/${id}`);
     return { ok: true };
@@ -66,8 +68,8 @@ export async function toggleOrgActiveAction(
   id: string,
   nextIsActive: boolean
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  await requireAdmin();
   try {
-    await requireAdmin();
     const supabase = await createClient();
     await updateOrganization(supabase, id, { is_active: nextIsActive } as Partial<OrganizationFormData>);
     revalidatePath('/admin/organizations');
