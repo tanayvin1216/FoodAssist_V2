@@ -12,6 +12,8 @@ export function Header() {
   const { branding } = useBranding();
   const { navigation: navSettings } = useNavigation();
 
+  // Sign-in is not a public concept on this site — admin + organization logins
+  // live at dedicated URLs reachable from the footer.
   const headerItems = navSettings.headerItems
     .filter((item) => item.enabled && item.showInHeader)
     .sort((a, b) => a.order - b.order);
@@ -45,15 +47,6 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          {navSettings.showSignIn && (
-            <Link
-              href="/login"
-              className="hidden md:inline-flex items-center justify-center h-9 px-5 text-sm font-medium text-white bg-navy rounded-full hover:bg-navy-light transition-colors"
-            >
-              {navSettings.signInLabel}
-            </Link>
-          )}
-
           <button
             onClick={() => setOpen(!open)}
             className="md:hidden p-2 text-muted-text hover:text-navy transition-colors"
@@ -83,15 +76,6 @@ export function Header() {
                 </Link>
               );
             })}
-            {navSettings.showSignIn && (
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="mt-2 inline-flex items-center justify-center h-11 px-6 text-sm font-medium text-white bg-navy rounded-full"
-              >
-                {navSettings.signInLabel}
-              </Link>
-            )}
           </nav>
         </div>
       )}

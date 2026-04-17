@@ -34,47 +34,79 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes
-  const isPortalRoute = request.nextUrl.pathname.startsWith('/portal');
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin');
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/login');
+  const path = request.nextUrl.pathname;
 
-  // Self-service signup is disabled — accounts are admin-invited only.
-  // Hard-redirect any legacy /signup traffic to the login page.
-  if (request.nextUrl.pathname.startsWith('/signup')) {
+  // Dedicated sign-in surfaces — must remain publicly reachable
+  const isAdminLogin = path === '/admin/login';
+  const isPortalLogin = path === '/portal/login';
+  const isAuthRoute = isAdminLogin || isPortalLogin;
+
+  // Protected areas (the login pages are excluded above)
+  const isPortalRoute = path.startsWith('/portal') && !isPortalLogin;
+  const isAdminRoute = path.startsWith('/admin') && !isAdminLogin;
+
+  // Legacy self-service routes — redirect to the admin login as the default
+  if (path.startsWith('/signup') || path === '/login') {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = '/admin/login';
     url.search = '';
     return NextResponse.redirect(url);
   }
 
-  // Redirect unauthenticated users away from protected routes
-  if (!user && (isPortalRoute || isAdminRoute)) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    url.searchParams.set('redirect', request.nextUrl.pathname);
-    return NextResponse.redirect(url);
+  // Unauthenticated users land on the matching login page for the area they tried to enter
+  if (!user) {
+    if (isAdminRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/login';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+    if (isPortalRoute) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/portal/login';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
   }
 
-  // Check admin role for admin routes
-  if (user && isAdminRoute) {
+  // Authenticated callers: enforce role on each area
+  if (user && (isAdminRoute || isPortalRoute)) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
 
-    if (!profile || profile.role !== 'admin') {
+    if (isAdminRoute && profile?.role !== 'admin') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      return NextResponse.redirect(url);
+    }
+
+    if (isPortalRoute && profile?.role !== 'organization') {
       const url = request.nextUrl.clone();
       url.pathname = '/';
       return NextResponse.redirect(url);
     }
   }
 
-  // Redirect authenticated users away from auth pages
+  // Already-signed-in users shouldn't sit on a login page
   if (user && isAuthRoute) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    if (profile?.role === 'admin') {
+      url.pathname = '/admin';
+    } else if (profile?.role === 'organization') {
+      url.pathname = '/portal';
+    } else {
+      url.pathname = '/';
+    }
+    url.search = '';
     return NextResponse.redirect(url);
   }
 

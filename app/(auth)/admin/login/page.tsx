@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,10 +13,8 @@ import { loginSchema, LoginFormValues } from '@/lib/validations/schemas';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
-function LoginForm() {
+export default function AdminLoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/portal/dashboard';
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -29,41 +27,57 @@ function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      });
+    const supabase = createClient();
 
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
 
-      toast.success('Logged in successfully');
-      router.push(redirectTo);
-      router.refresh();
-    } catch (error) {
-      toast.error('An error occurred. Please try again.');
-    } finally {
+    if (error || !authData.user) {
+      toast.error(error?.message ?? 'Unable to sign in.');
       setIsLoading(false);
+      return;
     }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (profile?.role !== 'admin') {
+      await supabase.auth.signOut();
+      toast.error('This portal is for Council administrators only.');
+      setIsLoading(false);
+      return;
+    }
+
+    toast.success('Welcome back.');
+    router.push('/admin');
+    router.refresh();
   };
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-center text-navy text-lg">Sign In</CardTitle>
+      <CardHeader className="space-y-2 text-center">
+        <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-navy/10">
+          <Shield className="h-5 w-5 text-navy" />
+        </div>
+        <CardTitle className="text-navy text-lg">Administrator Sign-In</CardTitle>
+        <p className="text-xs text-muted-text">
+          Council staff only. Use the credentials provided by the Food &amp; Health Council.
+        </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="admin-email">Email</Label>
             <Input
-              id="email"
+              id="admin-email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="you@carteretfoodasist.org"
+              autoComplete="email"
               {...register('email')}
             />
             {errors.email && (
@@ -72,10 +86,11 @@ function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="admin-password">Password</Label>
             <Input
-              id="password"
+              id="admin-password"
               type="password"
+              autoComplete="current-password"
               placeholder="Enter your password"
               {...register('password')}
             />
@@ -87,34 +102,15 @@ function LoginForm() {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin text-navy" />
-                Signing in...
+                <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
+                Signing in…
               </>
             ) : (
-              'Sign In'
+              'Sign In to Admin Dashboard'
             )}
           </Button>
         </form>
-
-        <p className="mt-6 text-center text-sm text-muted-text">
-          Accounts are created by the Food &amp; Health Council administrators.
-          If you manage an organization, ask an admin to invite you.
-        </p>
       </CardContent>
     </Card>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <Card>
-        <CardContent className="py-8">
-          <Loader2 className="w-8 h-8 mx-auto animate-spin text-navy" />
-        </CardContent>
-      </Card>
-    }>
-      <LoginForm />
-    </Suspense>
   );
 }

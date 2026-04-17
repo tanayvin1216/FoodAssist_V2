@@ -29,7 +29,7 @@ export default function PortalShell({ orgName, userEmail, children }: PortalShel
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push('/portal/login');
     router.refresh();
   };
 

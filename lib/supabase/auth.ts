@@ -36,24 +36,28 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 /**
- * Require authentication. Redirects to login if not authenticated.
+ * Require authentication. Defaults unauthenticated callers to the admin
+ * sign-in page; area-specific helpers below override this with their own
+ * matching login URL.
  */
-export async function requireAuth(): Promise<SessionUser> {
+export async function requireAuth(
+  loginPath: string = '/admin/login'
+): Promise<SessionUser> {
   const session = await getSession();
 
   if (!session) {
-    redirect('/login');
+    redirect(loginPath);
   }
 
   return session;
 }
 
 /**
- * Require admin role. Redirects to login if not authenticated,
- * redirects to home if authenticated but not admin.
+ * Require admin role. Redirects to the admin login if not authenticated,
+ * to the homepage if the caller is authenticated but lacks the role.
  */
 export async function requireAdmin(): Promise<SessionUser> {
-  const session = await requireAuth();
+  const session = await requireAuth('/admin/login');
 
   if (session.profile.role !== 'admin') {
     redirect('/');
@@ -63,40 +67,20 @@ export async function requireAdmin(): Promise<SessionUser> {
 }
 
 /**
- * Require organization role. Redirects to login if not authenticated,
- * redirects to home if not an org user.
- */
-export async function requireOrgUser(): Promise<SessionUser> {
-  const session = await requireAuth();
-
-  if (session.profile.role !== 'organization' && session.profile.role !== 'admin') {
-    redirect('/');
-  }
-
-  return session;
-}
-
-/**
- * Require organization role.
- * Redirects to /login?error=unauthorized if:
- *   - Not authenticated (requireAuth handles this, redirects to /login)
- *   - Authenticated but role !== 'organization'
- *   - profile.organization_id is null (user not linked to an org)
- *
- * Returns the session plus the verified organizationId so callers never
- * need to null-check it.
+ * Require an organization user. Sends unauthenticated callers to the
+ * organization sign-in page; anything with the wrong role bounces home.
  */
 export async function requireOrganization(): Promise<
   SessionUser & { organizationId: string }
 > {
-  const session = await requireAuth();
+  const session = await requireAuth('/portal/login');
 
   if (session.profile.role !== 'organization') {
-    redirect('/login?error=unauthorized');
+    redirect('/');
   }
 
   if (!session.profile.organization_id) {
-    redirect('/login?error=unauthorized');
+    redirect('/');
   }
 
   return {

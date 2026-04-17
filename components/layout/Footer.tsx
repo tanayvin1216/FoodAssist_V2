@@ -64,8 +64,23 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-6 border-t border-white/10 text-center text-sm text-white/40">
-          &copy; {new Date().getFullYear()} {contact.organizationName}
+        <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-sm text-white/40">
+          <p>&copy; {new Date().getFullYear()} {contact.organizationName}</p>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/portal/login"
+              className="hover:text-white transition-colors"
+            >
+              Organization Sign-In
+            </Link>
+            <span className="h-3 w-px bg-white/20" aria-hidden />
+            <Link
+              href="/admin/login"
+              className="hover:text-white transition-colors"
+            >
+              Administrator Sign-In
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
