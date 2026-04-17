@@ -3,11 +3,11 @@
 ## Original Request
 Wire the entire FoodAssist V2 app to Supabase backend. Admin dashboard controls everything: orgs, donations, users, settings, file import. Public frontend reads from DB. Every change committed as conventional commits, user as sole author.
 
-## Current Step: Backend integration complete except Phase 5 public pages (blocked on branch decision) + Step 14 admin settings save wiring
-## Active Story: Awaiting user decision on Phase 5 (public pages overlap with frontend-redesign branch)
-## Status: 19 commits shipped + pushed to origin/backendIntegrate. All Phase 1–4 + Phase 6 + security/perf audits DONE. See commit log.
-## Next Action: (1) Get SUPABASE_SERVICE_ROLE_KEY from user and add to .env.local; (2) user decides on Phase 5 path; (3) optional: wire admin settings page save buttons (Step 14).
-## Blockers: SUPABASE_SERVICE_ROLE_KEY (user-supplied only; Supabase dashboard → Project Settings → API → service_role secret). The value `9976e990-…` provided earlier is the JWT signing secret, not the service role API key.
+## Current Step: Backend integration COMPLETE. All 6 phases shipped.
+## Active Story: Done. Awaiting merge to main (alongside any additional frontend work).
+## Status: 23 commits shipped + pushed to origin/backendIntegrate. All Phase 1–6 + Step 14 admin settings + security/perf audits + frontend redesign merged.
+## Next Action: User adds SUPABASE_SERVICE_ROLE_KEY to .env.local; deploy to Vercel per docs/backend-integration/vercel-deploy.md; merge to main when ready.
+## Blockers: SUPABASE_SERVICE_ROLE_KEY still required to unlock admin user invite/delete at runtime. All other admin + public + portal functions work today without it.
 
 ## Step Tracker
 
@@ -29,21 +29,20 @@ Wire the entire FoodAssist V2 app to Supabase backend. Admin dashboard controls 
 - [x] Chunk F (Step 11): Admin volunteers — new page + AdminShell nav entry
 - [x] Reviewer fixes: auth bypass in orgs/actions.ts, window.confirm → Dialog, AdminShell palette
 
-### Phase 3: Settings Persistence — PARTIAL
+### Phase 3: Settings Persistence — COMPLETE
 - [x] Step 12: Settings API routes (GET public, PUT admin, zod validation, revalidatePath)
 - [x] Step 13: SettingsContext DB hydration with refresh() + defaults fallback
-- [ ] Step 14: Admin settings page save-button wiring (PUT /api/settings + refresh())
+- [x] Step 14: Admin settings forms (BrandingForm, ContactForm, HeroForm, EmergencyForm, NavigationForm) save to PUT /api/settings + refresh() on success
 
 ### Phase 4: File Import — COMPLETE
 - [x] Step 15: /api/import/organizations POST route via exceljs (Node.js runtime, 2 MB cap, MIME+ext allowlist, per-row validation, upsert keyed on lower(name)|lower(town), ?dryRun=1 support)
 - [x] Step 16: ImportOrganizationsDialog drag-and-drop UI with header mapping preview + per-row errors
 
-### Phase 5: Public Frontend Wiring — DEFERRED
-- [ ] Step 17: Homepage reads from Supabase
-- [ ] Step 18: Organization detail reads from Supabase
-- [ ] Step 19: Volunteers page reads from Supabase
-- [ ] Step 20: Revalidation hooks
-- **Why deferred**: all three pages are currently modified in the uncommitted frontend-redesign changeset on this branch. Wiring Supabase data fetching into them would tangle the two branches. Needs user decision: commit the redesign to this branch, or do Phase 5 after merging the frontend branch into main.
+### Phase 5: Public Frontend Wiring — COMPLETE (via Option A — redesign merged first)
+- [x] Step 17: Homepage reads from Supabase (getOrganizations + getUniqueTowns, Promise.all, revalidate=3600)
+- [x] Step 18: /organization/[id] reads from Supabase (getOrganizationById, notFound() if null/inactive, revalidate=3600)
+- [x] Step 19: /volunteers reads from Supabase (getVolunteerNeeds with org join, revalidate=3600)
+- [x] Step 20: Revalidation hooks — already wired on admin mutations (ADR-002); ISR works against them
 
 ### Phase 6: Organization Portal — COMPLETE (with known follow-ups)
 - [x] Step 21: requireOrganization() helper + layout server-guard
@@ -87,5 +86,6 @@ Wire the entire FoodAssist V2 app to Supabase backend. Admin dashboard controls 
 
 ## Outstanding User Decisions
 1. **SUPABASE_SERVICE_ROLE_KEY**: paste into .env.local so the admin Users page invite/delete buttons work.
-2. **Phase 5 path**: (a) commit frontend-redesign files to this branch and wire Supabase into them, or (b) merge frontend-redesign to main first, then do Phase 5 as a follow-up branch.
-3. **Vercel + Supabase Pro**: deploy readiness doc is at `docs/backend-integration/vercel-deploy.md`. Upgrade Supabase to Pro ($25/mo) before launch to avoid 7-day inactivity pause.
+2. **Vercel + Supabase Pro**: deploy readiness doc is at `docs/backend-integration/vercel-deploy.md`. Upgrade Supabase to Pro ($25/mo) before launch to avoid 7-day inactivity pause.
+3. **Portal follow-ups** (non-blocking): `/portal/dashboard` and `/portal/volunteers` still import sampleData; unused `requireOrgUser()` helper in auth.ts can be removed.
+4. **Admin reports page** (non-blocking): `app/admin/reports/page.tsx` still imports sampleData and has stray `bg-gray-50` / `bg-blue-50` palette leaks — next follow-up story.
