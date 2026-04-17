@@ -117,9 +117,9 @@ export default async function VolunteersPage() {
                           Requirements
                         </p>
                         <div className="flex flex-wrap gap-1.5">
-                          {need.needed_skills.map((skill, index) => (
+                          {need.needed_skills.map((skill) => (
                             <span
-                              key={index}
+                              key={skill}
                               className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs"
                             >
                               {skill}
@@ -131,19 +131,21 @@ export default async function VolunteersPage() {
 
                     <div className="flex gap-2 pt-2">
                       {need.contact_email && (
-                        <a href={`mailto:${need.contact_email}`}>
-                          <button className="rounded-full h-11 px-6 text-sm font-medium text-white bg-navy hover:bg-navy-light transition-colors flex items-center gap-2">
-                            <Mail className="w-3.5 h-3.5" />
-                            Contact
-                          </button>
+                        <a
+                          href={`mailto:${need.contact_email}`}
+                          className="rounded-full h-11 px-6 text-sm font-medium text-white bg-navy hover:bg-navy-light transition-colors flex items-center gap-2"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          Contact
                         </a>
                       )}
                       {org && (
-                        <Link href={`/organization/${org.id}`}>
-                          <button className="rounded-full h-11 px-6 text-sm font-medium text-navy border border-navy hover:bg-navy/5 transition-colors flex items-center gap-2">
-                            View Organization
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
+                        <Link
+                          href={`/organization/${org.id}`}
+                          className="rounded-full h-11 px-6 text-sm font-medium text-navy border border-navy hover:bg-navy/5 transition-colors flex items-center gap-2"
+                        >
+                          View Organization
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                       )}
                     </div>

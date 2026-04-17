@@ -157,12 +157,10 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
               href={getDirectionsUrl(address, town, zip)}
               target="_blank"
               rel="noopener noreferrer"
-              className="block pt-2"
+              className="mt-2 w-full rounded-full h-11 text-sm font-medium text-white bg-navy hover:bg-navy-light transition-colors flex items-center justify-center gap-2"
             >
-              <button className="w-full rounded-full h-11 text-sm font-medium text-white bg-navy hover:bg-navy-light transition-colors flex items-center justify-center gap-2">
-                <Navigation className="w-4 h-4" />
-                Get Directions
-              </button>
+              <Navigation className="w-4 h-4" />
+              Get Directions
             </a>
           </div>
         </div>
@@ -179,7 +177,9 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                 <div key={hours.day} className="flex justify-between items-center py-1">
                   <span className="text-sm font-medium text-navy">{DAY_LABELS[hours.day]}</span>
                   <span className={`text-sm ${hours.is_closed ? 'text-muted-text' : 'text-body-text'}`}>
-                    {hours.is_closed ? 'Closed' : `${formatTime(hours.open_time!)} - ${formatTime(hours.close_time!)}`}
+                    {hours.is_closed
+                      ? 'Closed'
+                      : `${formatTime(hours.open_time ?? '')} - ${formatTime(hours.close_time ?? '')}`}
                   </span>
                 </div>
               ))}
