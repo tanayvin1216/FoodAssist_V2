@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown, Shield, Building2 } from 'lucide-react';
 import { useState } from 'react';
 import { useBranding, useNavigation } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/contexts/LocaleContext';
+import { LanguageToggle } from '@/components/layout/LanguageToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +21,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const { branding } = useBranding();
   const { navigation: navSettings } = useNavigation();
+  const { t } = useTranslation();
 
   // Sign-in is not a public concept on this site — admin + organization logins
   // live at dedicated URLs reachable from the footer.
@@ -55,27 +58,29 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <LanguageToggle className="hidden md:inline-flex" size="sm" />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className="hidden md:inline-flex items-center gap-1.5 h-9 px-4 text-sm font-medium text-navy border border-navy/20 rounded-full hover:bg-navy/5 transition-colors"
-                aria-label="Open sign-in menu"
+                aria-label={t('nav.signIn')}
               >
-                Sign In
+                {t('nav.signIn')}
                 <ChevronDown className="h-3.5 w-3.5 opacity-70" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="text-xs font-medium uppercase tracking-wider text-muted-text">
-                Staff &amp; Partners
+                {t('nav.signInStaffPartners')}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/portal/login" className="flex items-start gap-3 py-2 cursor-pointer">
                   <Building2 className="h-4 w-4 mt-0.5 text-navy" />
                   <div>
-                    <p className="text-sm font-medium text-navy">Organization Portal</p>
-                    <p className="text-xs text-muted-text">Manage your listing</p>
+                    <p className="text-sm font-medium text-navy">{t('nav.signInOrg')}</p>
+                    <p className="text-xs text-muted-text">{t('nav.signInOrgHint')}</p>
                   </div>
                 </Link>
               </DropdownMenuItem>
@@ -83,8 +88,8 @@ export function Header() {
                 <Link href="/admin/login" className="flex items-start gap-3 py-2 cursor-pointer">
                   <Shield className="h-4 w-4 mt-0.5 text-navy" />
                   <div>
-                    <p className="text-sm font-medium text-navy">Administrator</p>
-                    <p className="text-xs text-muted-text">Council staff only</p>
+                    <p className="text-sm font-medium text-navy">{t('nav.signInAdmin')}</p>
+                    <p className="text-xs text-muted-text">{t('nav.signInAdminHint')}</p>
                   </div>
                 </Link>
               </DropdownMenuItem>
@@ -93,6 +98,7 @@ export function Header() {
 
           <button
             onClick={() => setOpen(!open)}
+            aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
             className="md:hidden p-2 text-muted-text hover:text-navy transition-colors"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -120,23 +126,24 @@ export function Header() {
                 </Link>
               );
             })}
-            <div className="mt-2 pt-3 border-t border-divider/50 flex flex-col gap-1">
+            <div className="mt-2 pt-3 border-t border-divider/50 flex flex-col gap-3">
+              <LanguageToggle size="sm" />
               <p className="text-xs font-medium uppercase tracking-wider text-muted-text mb-1">
-                Sign In
+                {t('nav.signIn')}
               </p>
               <Link
                 href="/portal/login"
                 onClick={() => setOpen(false)}
                 className="py-2 text-sm text-body-text hover:text-navy flex items-center gap-2"
               >
-                <Building2 className="h-4 w-4" /> Organization Portal
+                <Building2 className="h-4 w-4" /> {t('nav.signInOrg')}
               </Link>
               <Link
                 href="/admin/login"
                 onClick={() => setOpen(false)}
                 className="py-2 text-sm text-body-text hover:text-navy flex items-center gap-2"
               >
-                <Shield className="h-4 w-4" /> Administrator
+                <Shield className="h-4 w-4" /> {t('nav.signInAdmin')}
               </Link>
             </div>
           </nav>

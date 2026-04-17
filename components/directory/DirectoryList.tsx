@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Organization, DirectoryFilters } from '@/types/database';
 import { FilterPanel } from './FilterPanel';
 import { OrgCardSimple } from './OrgCardSimple';
+import { useTranslation } from '@/contexts/LocaleContext';
 import {
   Loader2,
   Search,
@@ -25,6 +26,7 @@ export function DirectoryList({
   towns,
   externalSearch = '',
 }: DirectoryListProps) {
+  const { t, locale } = useTranslation();
   const [filters, setFilters] = useState<DirectoryFilters>({});
   const [isLoading] = useState(false);
   const [scrollView, setScrollView] = useState<ScrollView>('carousel');
@@ -186,7 +188,7 @@ export function DirectoryList({
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
-            Filters
+            {t('dir.filter.label')}
             {activeFilterCount > 0 && (
               <span className="ml-1 w-5 h-5 rounded-full text-xs font-medium flex items-center justify-center bg-white text-navy">
                 {activeFilterCount}
@@ -194,7 +196,7 @@ export function DirectoryList({
             )}
           </button>
           <p className="text-sm text-muted-text">
-            {filteredOrganizations.length} places
+            {filteredOrganizations.length} {t('dir.resultsSuffix')}
           </p>
         </div>
 
@@ -207,7 +209,7 @@ export function DirectoryList({
                 : 'text-body-text hover:text-navy'
             }`}
           >
-            Cards
+            {t('dir.view.card')}
           </button>
           <button
             onClick={() => toggleScrollView('list')}
@@ -217,7 +219,7 @@ export function DirectoryList({
                 : 'text-body-text hover:text-navy'
             }`}
           >
-            List
+            {t('dir.view.list')}
           </button>
         </div>
       </div>
@@ -237,9 +239,9 @@ export function DirectoryList({
       ) : filteredOrganizations.length === 0 ? (
         <div className="text-center py-16">
           <Search className="w-5 h-5 mx-auto mb-3 text-muted-text" />
-          <p className="text-navy font-medium text-sm">No places found</p>
+          <p className="text-navy font-medium text-sm">{t('dir.empty.title')}</p>
           <p className="text-xs text-muted-text mt-1">
-            Try adjusting your search or filters
+            {t('dir.empty.body')}
           </p>
         </div>
       ) : scrollView === 'carousel' ? (
@@ -289,7 +291,7 @@ export function DirectoryList({
           </div>
 
           <p className="text-center text-xs text-muted-text mt-2 sm:hidden">
-            Swipe to see more
+            {locale === 'es' ? 'Desliza para ver más' : 'Swipe to see more'}
           </p>
         </div>
       ) : (

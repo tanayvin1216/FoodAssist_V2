@@ -20,10 +20,7 @@ import {
 import { createClient } from '@/lib/supabase/server';
 import { getOrganizationById } from '@/lib/supabase/queries';
 import {
-  ASSISTANCE_TYPE_LABELS,
-  DONATION_TYPE_LABELS,
   SERVED_POPULATION_LABELS,
-  DAY_LABELS,
   COST_LABELS,
 } from '@/lib/utils/constants';
 import {
@@ -32,6 +29,8 @@ import {
   getDirectionsUrl,
   formatDate,
 } from '@/lib/utils/formatters';
+import { getServerTranslator } from '@/lib/i18n/server';
+import type { MessageKey } from '@/lib/i18n/dictionary';
 
 export const revalidate = 3600;
 
@@ -43,7 +42,10 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
   const { id } = await params;
 
   const supabase = await createClient();
-  const organization = await getOrganizationById(supabase, id);
+  const [organization, { t, locale }] = await Promise.all([
+    getOrganizationById(supabase, id),
+    getServerTranslator(),
+  ]);
 
   if (!organization || !organization.is_active) {
     notFound();
@@ -80,14 +82,14 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
           className="inline-flex items-center text-sm text-muted-text hover:text-navy mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
-          Back to Directory
+          {t('org.emergencyBack')}
         </Link>
 
         <div className="mb-10">
           <div className="flex flex-wrap items-center gap-3 mb-3">
             <h1 className="font-display text-3xl md:text-4xl text-navy">{name}</h1>
             {spanish_available && (
-              <span className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs">Espanol</span>
+              <span className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs">{t('org.spanishSpoken')}</span>
             )}
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -96,7 +98,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                 key={type}
                 className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs"
               >
-                {ASSISTANCE_TYPE_LABELS[type]}
+                {t(`assistance.${type}` as MessageKey)}
               </span>
             ))}
           </div>
@@ -125,7 +127,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
 
             {contact_name && (
               <p className="text-sm text-body-text pl-7">
-                Contact: {contact_name}
+                {t('org.contact')}: {contact_name}
               </p>
             )}
 
@@ -142,13 +144,13 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
               {website && (
                 <a href={website} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-text hover:text-navy-light transition-colors inline-flex items-center gap-1">
                   <Globe className="w-3.5 h-3.5" />
-                  Website
+                  {t('org.website')}
                 </a>
               )}
               {facebook && (
                 <a href={facebook} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-text hover:text-navy-light transition-colors inline-flex items-center gap-1">
                   <Facebook className="w-3.5 h-3.5" />
-                  Facebook
+                  {t('org.facebook')}
                 </a>
               )}
             </div>
@@ -158,15 +160,15 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
               target="_blank"
               rel="noopener noreferrer"
               className="mt-2 w-full rounded-2xl py-3 px-5 text-white bg-navy hover:bg-navy-light transition-colors flex items-center gap-3 text-left"
-              aria-label={`Open directions to ${address ? address + ', ' : ''}${town}${zip ? ' ' + zip : ''} in Google Maps`}
+              aria-label={`${t('org.getDirections')}: ${address ? address + ', ' : ''}${town}${zip ? ' ' + zip : ''}`}
             >
               <Navigation className="w-4 h-4 flex-shrink-0" />
               <span className="flex-1 min-w-0">
                 <span className="block text-[10px] uppercase tracking-wider text-white/60">
-                  Get Directions
+                  {t('org.getDirections')}
                 </span>
                 <span className="block text-sm font-medium truncate">
-                  {[address, town, zip].filter(Boolean).join(', ') || 'Carteret County, NC'}
+                  {[address, town, zip].filter(Boolean).join(', ') || t('hero.locationBadge')}
                 </span>
               </span>
             </a>
@@ -178,15 +180,15 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
           <section>
             <div className="flex items-center gap-2 mb-4">
               <Clock className="w-4 h-4 text-muted-text" />
-              <h2 className="text-muted-text text-xs uppercase tracking-wider">Hours</h2>
+              <h2 className="text-muted-text text-xs uppercase tracking-wider">{t('org.hours')}</h2>
             </div>
             <div className="space-y-2">
               {operating_hours?.map((hours) => (
                 <div key={hours.day} className="flex justify-between items-center py-1">
-                  <span className="text-sm font-medium text-navy">{DAY_LABELS[hours.day]}</span>
+                  <span className="text-sm font-medium text-navy">{t(`day.${hours.day}` as MessageKey)}</span>
                   <span className={`text-sm ${hours.is_closed ? 'text-muted-text' : 'text-body-text'}`}>
                     {hours.is_closed
-                      ? 'Closed'
+                      ? t('org.dayClosed')
                       : `${formatTime(hours.open_time ?? '')} - ${formatTime(hours.close_time ?? '')}`}
                   </span>
                 </div>
@@ -202,10 +204,10 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
           <hr className="border-divider" />
 
           <section>
-            <h2 className="text-muted-text text-xs uppercase tracking-wider mb-4">Services</h2>
+            <h2 className="text-muted-text text-xs uppercase tracking-wider mb-4">{t('org.services')}</h2>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-muted-text mb-2">Population Served</p>
+                <p className="text-xs text-muted-text mb-2">{t('org.whoServed')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {who_served?.map((pop) => (
                     <span key={pop} className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs">
@@ -215,15 +217,21 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                 </div>
               </div>
               <div>
-                <p className="text-xs text-muted-text mb-2">Cost</p>
+                <p className="text-xs text-muted-text mb-2">
+                  {locale === 'es' ? 'Costo' : 'Cost'}
+                </p>
                 <span className="px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-full">
                   {COST_LABELS[cost]}
                 </span>
               </div>
               {num_meals_available && (
                 <div>
-                  <p className="text-xs text-muted-text mb-2">Meals Available</p>
-                  <p className="text-lg font-semibold text-navy">{num_meals_available} meals/day</p>
+                  <p className="text-xs text-muted-text mb-2">
+                    {locale === 'es' ? 'Comidas disponibles' : 'Meals Available'}
+                  </p>
+                  <p className="text-lg font-semibold text-navy">
+                    {num_meals_available} {locale === 'es' ? 'comidas/día' : 'meals/day'}
+                  </p>
                 </div>
               )}
             </div>
@@ -233,17 +241,17 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
             <>
               <hr className="border-divider" />
               <section>
-                <h2 className="text-muted-text text-xs uppercase tracking-wider mb-4">Donations Accepted</h2>
+                <h2 className="text-muted-text text-xs uppercase tracking-wider mb-4">{t('org.donationsAccepted')}</h2>
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {donations_accepted.map((type) => (
                     <span key={type} className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs">
-                      {DONATION_TYPE_LABELS[type]}
+                      {t(`donation.${type}` as MessageKey)}
                     </span>
                   ))}
                 </div>
                 {storage_capacity && (
                   <div>
-                    <p className="text-xs text-muted-text mb-2">Storage</p>
+                    <p className="text-xs text-muted-text mb-2">{t('org.storage')}</p>
                     <div className="space-y-1.5 text-sm">
                       <div className="flex items-center gap-2">
                         {storage_capacity.refrigerator ? (
@@ -251,7 +259,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                         ) : (
                           <XCircle className="w-4 h-4 text-gray-300" />
                         )}
-                        <span className="text-body-text">Refrigerator</span>
+                        <span className="text-body-text">{locale === 'es' ? 'Refrigerador' : 'Refrigerator'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {storage_capacity.freezer ? (
@@ -259,7 +267,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                         ) : (
                           <XCircle className="w-4 h-4 text-gray-300" />
                         )}
-                        <span className="text-body-text">Freezer</span>
+                        <span className="text-body-text">{locale === 'es' ? 'Congelador' : 'Freezer'}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {storage_capacity.dry_storage ? (
@@ -267,7 +275,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                         ) : (
                           <XCircle className="w-4 h-4 text-gray-300" />
                         )}
-                        <span className="text-body-text">Dry Storage</span>
+                        <span className="text-body-text">{locale === 'es' ? 'Almacenamiento seco' : 'Dry Storage'}</span>
                       </div>
                     </div>
                   </div>
@@ -280,7 +288,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
             <>
               <hr className="border-divider" />
               <section>
-                <h2 className="text-muted-text text-xs uppercase tracking-wider mb-3">Notes</h2>
+                <h2 className="text-muted-text text-xs uppercase tracking-wider mb-3">{t('org.additionalNotes')}</h2>
                 <p className="text-sm text-body-text">{comments}</p>
               </section>
             </>

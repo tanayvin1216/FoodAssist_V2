@@ -7,11 +7,11 @@ import {
   DirectoryFilters,
 } from '@/types/database';
 import {
-  ASSISTANCE_TYPE_LABELS,
-  DAY_LABELS,
   ASSISTANCE_TYPES,
   DAYS_OF_WEEK,
 } from '@/lib/utils/constants';
+import { useTranslation } from '@/contexts/LocaleContext';
+import type { MessageKey } from '@/lib/i18n/dictionary';
 
 interface FilterPanelProps {
   filters: DirectoryFilters;
@@ -22,6 +22,27 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: FilterPanelProps) {
+  const { t, locale } = useTranslation();
+  const DAY_SHORT_EN: Record<DayOfWeek, string> = {
+    monday: 'Mo',
+    tuesday: 'Tu',
+    wednesday: 'We',
+    thursday: 'Th',
+    friday: 'Fr',
+    saturday: 'Sa',
+    sunday: 'Su',
+  };
+  const DAY_SHORT_ES: Record<DayOfWeek, string> = {
+    monday: 'Lu',
+    tuesday: 'Ma',
+    wednesday: 'Mi',
+    thursday: 'Ju',
+    friday: 'Vi',
+    saturday: 'Sá',
+    sunday: 'Do',
+  };
+  const dayShort = locale === 'es' ? DAY_SHORT_ES : DAY_SHORT_EN;
+
   const handleAssistanceTypeChange = (type: AssistanceType) => {
     const current = filters.assistanceTypes || [];
     const updated = current.includes(type)
@@ -45,7 +66,7 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
       <div className="mb-5">
         <h4 className="text-xs font-medium uppercase tracking-wider text-muted-text mb-3 flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5" />
-          Town
+          {t('dir.filter.town')}
         </h4>
         <div className="flex flex-wrap gap-2">
           <button
@@ -56,7 +77,7 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
                 : 'text-body-text hover:bg-navy/5'
             }`}
           >
-            All
+            {t('dir.filter.all')}
           </button>
           {towns.map((town) => (
             <button
@@ -76,7 +97,7 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
 
       <div className="mb-5">
         <h4 className="text-xs font-medium uppercase tracking-wider text-muted-text mb-3">
-          Type of Help
+          {t('dir.filter.assistance')}
         </h4>
         <div className="flex flex-wrap gap-2">
           {ASSISTANCE_TYPES.map((type) => (
@@ -89,7 +110,7 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
                   : 'text-body-text hover:bg-navy/5'
               }`}
             >
-              {ASSISTANCE_TYPE_LABELS[type]}
+              {t(`assistance.${type}` as MessageKey)}
             </button>
           ))}
         </div>
@@ -97,7 +118,7 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
 
       <div className="mb-5">
         <h4 className="text-xs font-medium uppercase tracking-wider text-muted-text mb-3">
-          Open On
+          {t('dir.filter.day')}
         </h4>
         <div className="flex flex-wrap gap-2">
           {DAYS_OF_WEEK.map((day) => (
@@ -109,8 +130,9 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
                   ? 'bg-navy text-white'
                   : 'text-body-text hover:bg-navy/5'
               }`}
+              aria-label={t(`day.${day}` as MessageKey)}
             >
-              {DAY_LABELS[day].slice(0, 2)}
+              {dayShort[day]}
             </button>
           ))}
         </div>
@@ -120,7 +142,7 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
         onClick={onClose}
         className="w-full h-11 text-sm font-medium text-white bg-navy rounded-full hover:bg-navy-light transition-colors"
       >
-        Done
+        {locale === 'es' ? 'Listo' : 'Done'}
       </button>
     </div>
   );

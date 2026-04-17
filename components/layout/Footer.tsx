@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useBranding, useContact, useNavigation } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/contexts/LocaleContext';
 
 export function Footer() {
   const { branding } = useBranding();
   const { contact } = useContact();
   const { navigation: navSettings } = useNavigation();
+  const { t } = useTranslation();
 
   const footerLinks = navSettings.footerQuickLinks
     .filter((item) => item.enabled && item.showInFooter)
@@ -27,7 +29,7 @@ export function Footer() {
 
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-white/40 mb-4">
-              Quick Links
+              {t('footer.quickLinks')}
             </p>
             <ul className="space-y-3">
               {footerLinks.map((item) => (
@@ -45,7 +47,7 @@ export function Footer() {
 
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-white/40 mb-4">
-              Contact
+              {t('footer.contact')}
             </p>
             <ul className="space-y-3 text-sm text-white/60">
               <li>{contact.organizationName}</li>
@@ -71,14 +73,14 @@ export function Footer() {
               href="/portal/login"
               className="hover:text-white transition-colors"
             >
-              Organization Sign-In
+              {t('footer.orgSignIn')}
             </Link>
             <span className="h-3 w-px bg-white/20" aria-hidden />
             <Link
               href="/admin/login"
               className="hover:text-white transition-colors"
             >
-              Administrator Sign-In
+              {t('footer.adminSignIn')}
             </Link>
           </div>
         </div>

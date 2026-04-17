@@ -3,6 +3,8 @@ import { DM_Serif_Display, Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { SettingsProvider } from '@/contexts/SettingsContext';
+import { LocaleProvider } from '@/contexts/LocaleContext';
+import { getServerLocale } from '@/lib/i18n/server';
 import { defaultSettings } from '@/config/default-settings';
 
 const dmSerif = DM_Serif_Display({
@@ -24,18 +26,21 @@ export const metadata: Metadata = {
   keywords: defaultSettings.metadata.keywords,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getServerLocale();
   return (
-    <html lang="en" className={`${dmSerif.variable} ${inter.variable}`}>
+    <html lang={locale} className={`${dmSerif.variable} ${inter.variable}`}>
       <body className="min-h-screen bg-white font-sans antialiased text-body-text">
-        <SettingsProvider>
-          {children}
-          <Toaster position="top-right" />
-        </SettingsProvider>
+        <LocaleProvider initialLocale={locale}>
+          <SettingsProvider>
+            {children}
+            <Toaster position="top-right" />
+          </SettingsProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

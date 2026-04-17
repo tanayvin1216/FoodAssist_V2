@@ -10,13 +10,16 @@ import { createClient } from '@/lib/supabase/server';
 import { getVolunteerNeeds } from '@/lib/supabase/queries';
 import { Organization } from '@/types/database';
 import { formatDate } from '@/lib/utils/formatters';
+import { getServerTranslator } from '@/lib/i18n/server';
 
 export const revalidate = 3600;
 
 export default async function VolunteersPage() {
   const supabase = await createClient();
-  // activeOnly=true is the default; the query also embeds organization:{id,name}
-  const activeNeeds = await getVolunteerNeeds(supabase);
+  const [activeNeeds, { t, locale }] = await Promise.all([
+    getVolunteerNeeds(supabase),
+    getServerTranslator(),
+  ]);
 
   return (
     <div className="min-h-screen">
@@ -30,14 +33,13 @@ export default async function VolunteersPage() {
         <div className="container px-6 pb-10 pt-24 md:pb-14 md:pt-32 relative text-center max-w-5xl mx-auto">
           <div className="max-w-2xl mx-auto">
             <p className="text-sm font-medium text-white/70 mb-4 tracking-wide uppercase">
-              Get Involved
+              {locale === 'es' ? 'Involúcrese' : 'Get Involved'}
             </p>
             <h1 className="font-display text-4xl md:text-5xl text-white leading-[1.1] mb-6">
-              Volunteer Opportunities
+              {t('vol.headline')}
             </h1>
             <p className="text-lg text-white/80 max-w-lg mx-auto">
-              Make a difference in your community by volunteering with local
-              food assistance organizations.
+              {t('vol.subtitle')}
             </p>
           </div>
         </div>
@@ -49,19 +51,19 @@ export default async function VolunteersPage() {
             <div className="text-center py-16">
               <Users className="w-5 h-5 mx-auto mb-3 text-muted-text" />
               <h2 className="text-lg font-semibold text-navy mb-2">
-                No Volunteer Opportunities Available
+                {t('vol.empty.title')}
               </h2>
               <p className="text-sm text-body-text">
-                Check back soon for new volunteer opportunities, or contact an
-                organization directly to offer your help.
+                {t('vol.empty.body')}
               </p>
             </div>
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-muted-text mb-2">
-                {activeNeeds.length} volunteer{' '}
-                {activeNeeds.length === 1 ? 'opportunity' : 'opportunities'}{' '}
-                available
+                {activeNeeds.length}{' '}
+                {locale === 'es'
+                  ? activeNeeds.length === 1 ? 'oportunidad de voluntariado disponible' : 'oportunidades de voluntariado disponibles'
+                  : activeNeeds.length === 1 ? 'volunteer opportunity available' : 'volunteer opportunities available'}
               </p>
 
               {activeNeeds.map((need) => {
@@ -114,7 +116,7 @@ export default async function VolunteersPage() {
                     {need.needed_skills && need.needed_skills.length > 0 && (
                       <div className="mb-4">
                         <p className="text-xs text-muted-text mb-2 uppercase tracking-wider">
-                          Requirements
+                          {t('vol.requirementsLabel')}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {need.needed_skills.map((skill) => (
@@ -136,7 +138,7 @@ export default async function VolunteersPage() {
                           className="rounded-full h-11 px-6 text-sm font-medium text-white bg-navy hover:bg-navy-light transition-colors flex items-center gap-2"
                         >
                           <Mail className="w-3.5 h-3.5" />
-                          Contact
+                          {t('vol.contact')}
                         </a>
                       )}
                       {org && (
@@ -144,7 +146,7 @@ export default async function VolunteersPage() {
                           href={`/organization/${org.id}`}
                           className="rounded-full h-11 px-6 text-sm font-medium text-navy border border-navy hover:bg-navy/5 transition-colors flex items-center gap-2"
                         >
-                          View Organization
+                          {t('vol.viewOrg')}
                           <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                       )}
@@ -157,19 +159,21 @@ export default async function VolunteersPage() {
 
           <div className="mt-12 bg-navy rounded-2xl p-8 text-center">
             <p className="text-xs font-medium uppercase tracking-wider text-white/60 mb-2">
-              For Organizations
+              {locale === 'es' ? 'Para organizaciones' : 'For Organizations'}
             </p>
             <p className="text-white text-xl font-semibold mb-2">
-              Post your volunteer needs
+              {locale === 'es' ? 'Publique sus necesidades de voluntariado' : 'Post your volunteer needs'}
             </p>
             <p className="text-white/60 text-sm mb-6">
-              Connect with community helpers by listing your volunteer opportunities.
+              {locale === 'es'
+                ? 'Conéctese con ayudantes de la comunidad publicando sus oportunidades de voluntariado.'
+                : 'Connect with community helpers by listing your volunteer opportunities.'}
             </p>
             <Link
               href="/portal/login"
               className="rounded-full h-11 px-6 text-sm font-medium text-navy bg-white hover:bg-white/90 transition-colors inline-flex items-center gap-2"
             >
-              Access Organization Portal
+              {locale === 'es' ? 'Acceder al portal de organización' : 'Access Organization Portal'}
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
