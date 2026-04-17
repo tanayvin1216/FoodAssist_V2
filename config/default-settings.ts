@@ -65,7 +65,7 @@ export const defaultSettings: SiteSettings = {
       {
         id: '3',
         name: 'Organizations',
-        href: '/portal/dashboard',
+        href: '/portal',
         enabled: true,
         order: 3,
         showInHeader: true,
@@ -94,7 +94,7 @@ export const defaultSettings: SiteSettings = {
       {
         id: '6',
         name: 'Organization Portal',
-        href: '/portal/dashboard',
+        href: '/portal',
         enabled: true,
         order: 3,
         showInHeader: false,

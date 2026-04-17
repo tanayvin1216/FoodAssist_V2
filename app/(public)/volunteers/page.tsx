@@ -165,11 +165,12 @@ export default async function VolunteersPage() {
             <p className="text-white/60 text-sm mb-6">
               Connect with community helpers by listing your volunteer opportunities.
             </p>
-            <Link href="/portal/dashboard">
-              <button className="rounded-full h-11 px-6 text-sm font-medium text-navy bg-white hover:bg-white/90 transition-colors inline-flex items-center gap-2">
-                Access Organization Portal
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+            <Link
+              href="/portal/login"
+              className="rounded-full h-11 px-6 text-sm font-medium text-navy bg-white hover:bg-white/90 transition-colors inline-flex items-center gap-2"
+            >
+              Access Organization Portal
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
