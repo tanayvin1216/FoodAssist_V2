@@ -45,6 +45,13 @@ export async function updateSession(request: NextRequest) {
   const isPortalRoute = path.startsWith('/portal') && !isPortalLogin;
   const isAdminRoute = path.startsWith('/admin') && !isAdminLogin;
 
+  // Temporary diagnostic — prove what the middleware actually sees
+  if (path.startsWith('/admin') || path.startsWith('/portal')) {
+    console.log(
+      `[mw] ${path} | user=${user?.id ?? 'anon'} | isAdminLogin=${isAdminLogin} | isAdminRoute=${isAdminRoute} | isAuthRoute=${isAuthRoute}`
+    );
+  }
+
   // Legacy self-service routes — redirect to the admin login as the default
   if (path.startsWith('/signup') || path === '/login') {
     const url = request.nextUrl.clone();
