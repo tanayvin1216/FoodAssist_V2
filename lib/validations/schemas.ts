@@ -7,18 +7,19 @@ import {
   NC_ZIP_CODE_PATTERN,
 } from '@/lib/utils/constants';
 
-// Phone validation with formatting
-const phoneSchema = z
-  .string()
-  .min(1, 'Phone number is required')
-  .transform((val) => val.replace(/\D/g, ''))
-  .refine((val) => val.length === 10, 'Phone number must be 10 digits');
+// Phone: optional at the schema level, kept as the user entered it.
+// Real-world data (import + admin quick-add) often has extensions,
+// slashes, or is missing entirely. The public directory treats it as
+// a tel: link either way.
+const phoneSchema = z.string().max(60).optional().or(z.literal(''));
 
-// NC zip code validation
-const zipSchema = z
-  .string()
-  .min(1, 'ZIP code is required')
-  .refine((val) => NC_ZIP_CODE_PATTERN.test(val), 'Please enter a valid NC ZIP code (28XXX)');
+// ZIP: optional; when present, accept any 5-digit sequence (coastal
+// NC covers multiple 28xxx codes but rows come in without them too).
+const zipSchema = z.string().max(20).optional().or(z.literal(''));
+
+// URL: empty, a real URL, or a bare domain. Any non-empty string
+// passes; the UI/import layer normalizes (adds https://) before save.
+const urlSchema = z.string().max(500).optional().or(z.literal(''));
 
 // Operating hours schema
 export const operatingHoursSchema = z.object({
@@ -43,17 +44,23 @@ export const storageCapacitySchema = z.object({
   notes: z.string().optional(),
 });
 
-// Organization schema
+// Organization schema.
+// Design note — importer tolerance: only `name`, `town`, and at least
+// one `assistance_type` are truly required. Address/phone/zip/email/URL
+// are optional because the seed data (Google Form responses from the
+// real-world Carteret County Master Database) routinely ships with
+// them missing or malformed. Invalid values are coerced or dropped at
+// the import boundary rather than rejecting the whole row.
 export const organizationSchema = z.object({
   name: z.string().min(1, 'Organization name is required').max(200),
-  address: z.string().min(1, 'Address is required').max(500),
+  address: z.string().max(500).optional().or(z.literal('')),
   town: z.string().min(1, 'Town is required'),
   zip: zipSchema,
   contact_name: z.string().max(100).optional(),
   phone: phoneSchema,
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
-  facebook: z.string().url('Invalid Facebook URL').optional().or(z.literal('')),
+  email: z.string().max(200).optional().or(z.literal('')),
+  website: urlSchema,
+  facebook: urlSchema,
   assistance_types: z
     .array(z.enum(ASSISTANCE_TYPES as [string, ...string[]]))
     .min(1, 'Select at least one assistance type'),
@@ -64,7 +71,7 @@ export const organizationSchema = z.object({
   hours_notes: z.string().max(500).optional(),
   donations_accepted: z.array(z.enum(DONATION_TYPES as [string, ...string[]])),
   storage_capacity: storageCapacitySchema.optional(),
-  comments: z.string().max(1000).optional(),
+  comments: z.string().max(2000).optional(),
   is_active: z.boolean(),
   spanish_available: z.boolean(),
 });
