@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,34 +14,49 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
-import { useNavigation } from '@/contexts/SettingsContext';
+import { useNavigation, useSettings } from '@/contexts/SettingsContext';
 import { NavigationItem } from '@/types/settings';
 import { toast } from 'sonner';
 
 export function NavigationForm() {
-  const { navigation, updateNavigation } = useNavigation();
-  const [isLoading, setIsLoading] = useState(false);
+  const { navigation } = useNavigation();
+  const { refresh } = useSettings();
+  const [isPending, startTransition] = useTransition();
   const [headerItems, setHeaderItems] = useState(navigation.headerItems);
   const [footerLinks, setFooterLinks] = useState(navigation.footerQuickLinks);
   const [showSignIn, setShowSignIn] = useState(navigation.showSignIn);
   const [signInLabel, setSignInLabel] = useState(navigation.signInLabel);
 
-  const handleSave = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      updateNavigation({
-        headerItems,
-        footerQuickLinks: footerLinks,
-        showSignIn,
-        signInLabel,
-      });
-      toast.success('Navigation settings saved');
-    } catch {
-      toast.error('Failed to save settings');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleSave = () => {
+    startTransition(async () => {
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            navigation: {
+              headerItems,
+              footerQuickLinks: footerLinks,
+              showSignIn,
+              signInLabel,
+            },
+          }),
+        });
+        const json = (await res.json()) as { ok: boolean; error?: string; details?: unknown };
+        if (res.status === 401) {
+          toast.error('Your admin session has expired — sign in again.');
+          return;
+        }
+        if (json.ok) {
+          toast.success('Navigation settings saved');
+          await refresh();
+        } else {
+          toast.error(json.error ?? 'Failed to save settings');
+        }
+      } catch {
+        toast.error('Failed to save settings');
+      }
+    });
   };
 
   const toggleHeaderItem = (id: string) => {
@@ -264,8 +279,8 @@ export function NavigationForm() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isLoading}>
-          {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+        <Button onClick={handleSave} disabled={isPending}>
+          {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           Save Navigation
         </Button>
       </div>
