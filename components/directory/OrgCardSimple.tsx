@@ -86,11 +86,14 @@ export function OrgCardSimple({ organization }: OrgCardSimpleProps) {
           href={getDirectionsUrl(address, town, zip)}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-1"
+          className="flex-1 min-w-0"
+          aria-label={`Open directions to ${[address, town, zip].filter(Boolean).join(', ')} in Google Maps`}
         >
-          <button className="w-full h-11 text-sm font-medium text-navy border border-navy rounded-full hover:bg-navy/5 transition-colors flex items-center justify-center gap-1.5">
-            <Navigation className="w-3.5 h-3.5" />
-            Directions
+          <button className="w-full h-11 px-4 text-sm font-medium text-navy border border-navy rounded-full hover:bg-navy/5 transition-colors inline-flex items-center justify-center gap-1.5 max-w-full">
+            <Navigation className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="underline underline-offset-2 truncate">
+              {address || 'Directions'}
+            </span>
           </button>
         </a>
       </div>
