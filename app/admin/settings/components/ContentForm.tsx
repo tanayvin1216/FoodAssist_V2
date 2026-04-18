@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, FileText, AlertCircle } from 'lucide-react';
-import { useHeroSettings, useEmergencySettings } from '@/contexts/SettingsContext';
+import { useHeroSettings, useEmergencySettings, useSettings } from '@/contexts/SettingsContext';
 import {
   heroSettingsSchema,
   emergencySettingsSchema,
@@ -24,7 +24,7 @@ import {
   EmergencySettingsValues,
 } from '@/lib/validations/settings-schemas';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useTransition } from 'react';
 
 export function ContentForm() {
   return (
@@ -36,8 +36,9 @@ export function ContentForm() {
 }
 
 function HeroForm() {
-  const { hero, updateHero } = useHeroSettings();
-  const [isLoading, setIsLoading] = useState(false);
+  const { hero } = useHeroSettings();
+  const { refresh } = useSettings();
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
@@ -52,17 +53,29 @@ function HeroForm() {
 
   const showStats = watch('showStats');
 
-  const onSubmit = async (data: HeroSettingsValues) => {
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      updateHero(data);
-      toast.success('Hero section saved');
-    } catch {
-      toast.error('Failed to save settings');
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = (data: HeroSettingsValues) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hero: data }),
+        });
+        const json = (await res.json()) as { ok: boolean; error?: string; details?: unknown };
+        if (res.status === 401) {
+          toast.error('Your admin session has expired — sign in again.');
+          return;
+        }
+        if (json.ok) {
+          toast.success('Hero section saved');
+          await refresh();
+        } else {
+          toast.error(json.error ?? 'Failed to save settings');
+        }
+      } catch {
+        toast.error('Failed to save settings');
+      }
+    });
   };
 
   return (
@@ -155,8 +168,8 @@ function HeroForm() {
           )}
 
           <div className="flex justify-end pt-2">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Hero
             </Button>
           </div>
@@ -167,8 +180,9 @@ function HeroForm() {
 }
 
 function EmergencyForm() {
-  const { emergency, updateEmergency } = useEmergencySettings();
-  const [isLoading, setIsLoading] = useState(false);
+  const { emergency } = useEmergencySettings();
+  const { refresh } = useSettings();
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
@@ -184,17 +198,29 @@ function EmergencyForm() {
   const enabled = watch('enabled');
   const currentIcon = watch('icon');
 
-  const onSubmit = async (data: EmergencySettingsValues) => {
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      updateEmergency(data);
-      toast.success('Emergency section saved');
-    } catch {
-      toast.error('Failed to save settings');
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = (data: EmergencySettingsValues) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emergency: data }),
+        });
+        const json = (await res.json()) as { ok: boolean; error?: string; details?: unknown };
+        if (res.status === 401) {
+          toast.error('Your admin session has expired — sign in again.');
+          return;
+        }
+        if (json.ok) {
+          toast.success('Emergency section saved');
+          await refresh();
+        } else {
+          toast.error(json.error ?? 'Failed to save settings');
+        }
+      } catch {
+        toast.error('Failed to save settings');
+      }
+    });
   };
 
   return (
@@ -299,8 +325,8 @@ function EmergencyForm() {
           )}
 
           <div className="flex justify-end pt-2">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Emergency Section
             </Button>
           </div>

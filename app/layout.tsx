@@ -1,18 +1,23 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { DM_Serif_Display, Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { SettingsProvider } from '@/contexts/SettingsContext';
+import { LocaleProvider } from '@/contexts/LocaleContext';
+import { getServerLocale } from '@/lib/i18n/server';
 import { defaultSettings } from '@/config/default-settings';
 
-const geistSans = Geist({
+const dmSerif = DM_Serif_Display({
+  weight: ['400'],
   subsets: ['latin'],
-  variable: '--font-geist-sans',
+  variable: '--font-heading',
+  display: 'swap',
 });
 
-const geistMono = Geist_Mono({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-geist-mono',
+  variable: '--font-body',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -21,18 +26,21 @@ export const metadata: Metadata = {
   keywords: defaultSettings.metadata.keywords,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getServerLocale();
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="min-h-screen bg-gray-50 font-sans antialiased">
-        <SettingsProvider>
-          {children}
-          <Toaster position="top-right" />
-        </SettingsProvider>
+    <html lang={locale} className={`${dmSerif.variable} ${inter.variable}`}>
+      <body className="min-h-screen bg-white font-sans antialiased text-body-text">
+        <LocaleProvider initialLocale={locale}>
+          <SettingsProvider>
+            {children}
+            <Toaster position="top-right" />
+          </SettingsProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

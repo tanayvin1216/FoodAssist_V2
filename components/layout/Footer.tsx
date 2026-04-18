@@ -1,46 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { Heart, Utensils } from 'lucide-react';
 import { useBranding, useContact, useNavigation } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/contexts/LocaleContext';
 
 export function Footer() {
   const { branding } = useBranding();
   const { contact } = useContact();
   const { navigation: navSettings } = useNavigation();
+  const { t } = useTranslation();
 
   const footerLinks = navSettings.footerQuickLinks
     .filter((item) => item.enabled && item.showInFooter)
     .sort((a, b) => a.order - b.order);
 
   return (
-    <footer className="bg-slate-800 text-slate-300">
-      <div className="content-container py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* About */}
+    <footer className="bg-navy">
+      <div className="container px-6 py-12 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           <div>
-            <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-slate-600 flex items-center justify-center">
-                <Utensils className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-lg text-white">
-                {branding.siteName}
-              </span>
-            </div>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <span className="font-display text-lg text-white">
+              {branding.siteName}
+            </span>
+            <p className="mt-3 text-sm text-white/60 leading-relaxed max-w-xs">
               {branding.footerTagline}
             </p>
           </div>
 
-          {/* Quick Links */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Quick Links</h3>
-            <ul className="space-y-2.5 text-sm">
+            <p className="text-xs font-medium uppercase tracking-wider text-white/40 mb-4">
+              {t('footer.quickLinks')}
+            </p>
+            <ul className="space-y-3">
               {footerLinks.map((item) => (
                 <li key={item.id}>
                   <Link
                     href={item.href}
-                    className="text-slate-400 hover:text-white transition-colors"
+                    className="text-sm text-white/60 hover:text-white transition-colors"
                   >
                     {item.name}
                   </Link>
@@ -49,10 +45,11 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Contact</h3>
-            <ul className="space-y-2.5 text-sm text-slate-400">
+            <p className="text-xs font-medium uppercase tracking-wider text-white/40 mb-4">
+              {t('footer.contact')}
+            </p>
+            <ul className="space-y-3 text-sm text-white/60">
               <li>{contact.organizationName}</li>
               <li>
                 {contact.city}, {contact.state}
@@ -69,15 +66,23 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-slate-700 text-center text-sm text-slate-500">
-          <p className="flex items-center justify-center">
-            Made with{' '}
-            <Heart className="w-4 h-4 mx-1.5 text-red-400" fill="currentColor" />{' '}
-            for {contact.city}
-          </p>
-          <p className="mt-2">
-            &copy; {new Date().getFullYear()} {contact.organizationName}
-          </p>
+        <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-sm text-white/40">
+          <p>&copy; {new Date().getFullYear()} {contact.organizationName}</p>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/portal/login"
+              className="hover:text-white transition-colors"
+            >
+              {t('footer.orgSignIn')}
+            </Link>
+            <span className="h-3 w-px bg-white/20" aria-hidden />
+            <Link
+              href="/admin/login"
+              className="hover:text-white transition-colors"
+            >
+              {t('footer.adminSignIn')}
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -22,56 +22,41 @@ export function HeroSection({ organizationCount, townCount }: HomeContentProps) 
   const { hero } = useHeroSettings();
 
   return (
-    <section className="relative overflow-hidden">
-      {/* Background Image */}
+    <section className="relative min-h-[420px] md:min-h-[480px] flex items-center overflow-hidden">
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: 'url(/hero-bg.jpg)' }}
+        style={{ backgroundImage: 'url(/hero-bg.jpg)', backgroundColor: '#1E3A5F' }}
       />
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/80" />
-
-      <div className="content-container py-16 md:py-24 relative">
-        <div className="max-w-xl mx-auto text-center">
-          {/* Location Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium mb-6 border border-white/20">
-            <MapPin className="w-4 h-4" />
-            <span>{hero.locationBadge}</span>
-          </div>
-
-          {/* Main Headline */}
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-5 leading-tight">
+      <div className="absolute inset-0 bg-navy/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-navy/30" />
+      <div className="container px-6 pb-24 pt-24 md:pb-28 md:pt-32 relative text-center max-w-5xl mx-auto">
+        <div className="max-w-2xl mx-auto">
+          <p className="text-sm font-medium text-white/70 mb-4 tracking-wide uppercase">
+            <MapPin className="w-3.5 h-3.5 inline mr-1.5 relative -top-px" />
+            {hero.locationBadge}
+          </p>
+          <h1 className="font-display text-4xl md:text-5xl lg:text-[3.5rem] text-white leading-[1.1] mb-6">
             {hero.headline}
           </h1>
-
-          {/* Subtitle */}
-          <p className="text-lg text-white/80 mb-8 leading-relaxed max-w-md mx-auto">
+          <p className="text-lg text-white/80 max-w-lg mx-auto mb-10">
             {hero.subtitle}
           </p>
-
-          {/* Quick Stats */}
           {hero.showStats && (
-            <div className="flex flex-wrap justify-center gap-3">
-              <div className="px-5 py-3 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/20">
-                <span className="font-bold text-2xl text-white">
-                  {organizationCount}
-                </span>
-                <span className="text-white/80 ml-2 text-sm">
-                  {hero.statsLabels.locations}
-                </span>
-              </div>
-              <div className="px-5 py-3 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/20">
-                <span className="font-bold text-2xl text-white">{townCount}</span>
-                <span className="text-white/80 ml-2 text-sm">
-                  {hero.statsLabels.towns}
-                </span>
-              </div>
-              <div className="px-5 py-3 bg-emerald-500/80 backdrop-blur-sm rounded-2xl">
-                <span className="font-bold text-2xl text-white">Free</span>
-                <span className="text-white/90 ml-2 text-sm">
-                  {hero.statsLabels.services}
-                </span>
-              </div>
+            <div className="flex items-center justify-center gap-5 text-sm text-white/70">
+              <span>
+                <strong className="text-white font-semibold">{organizationCount}</strong>{' '}
+                {hero.statsLabels.locations}
+              </span>
+              <span className="w-px h-4 bg-white/20" />
+              <span>
+                <strong className="text-white font-semibold">{townCount}</strong>{' '}
+                {hero.statsLabels.towns}
+              </span>
+              <span className="w-px h-4 bg-white/20" />
+              <span>
+                <strong className="text-white font-semibold">Free</strong>{' '}
+                {hero.statsLabels.services}
+              </span>
             </div>
           )}
         </div>
@@ -91,36 +76,37 @@ export function EmergencySection() {
   const Icon = iconMap[emergency.icon];
 
   return (
-    <section className="content-container pb-12">
-      <div className="max-w-xl mx-auto">
-        <div className="bg-slate-700 rounded-3xl p-8 text-center text-white shadow-xl">
-          <div className="w-12 h-12 mx-auto mb-4 bg-white/10 rounded-2xl flex items-center justify-center">
-            <Icon className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold mb-3">{emergency.title}</h2>
-          <p className="text-slate-300 text-sm mb-6 max-w-xs mx-auto">
-            {emergency.description}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            {emergency.showPrimaryPhone && (
-              <a
-                href={`tel:${contact.emergencyPhone}`}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white text-slate-700 font-semibold rounded-xl hover:bg-slate-100 transition-colors text-sm"
-              >
-                <Phone className="w-4 h-4" />
-                {contact.emergencyPhoneDisplay}
-              </a>
-            )}
-            {emergency.showExternalHelp && (
-              <a
-                href={contact.externalHelpUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-6 py-3.5 bg-slate-600 text-white font-semibold rounded-xl hover:bg-slate-500 transition-colors text-sm"
-              >
-                {contact.externalHelpLabel}
-              </a>
-            )}
+    <section className="container px-6 pb-16">
+      <div className="max-w-xl">
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+          <div className="border-l-4 border-amber-400 p-6">
+            <p className="text-base font-semibold text-navy mb-2">
+              {emergency.title}
+            </p>
+            <p className="text-sm text-muted-text mb-5">
+              {emergency.description}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {emergency.showPrimaryPhone && (
+                <a
+                  href={`tel:${contact.emergencyPhone}`}
+                  className="inline-flex items-center justify-center gap-2 rounded-full h-11 px-6 text-sm font-medium text-white bg-navy hover:bg-navy-light transition-colors"
+                >
+                  <Phone className="w-4 h-4" />
+                  {contact.emergencyPhoneDisplay}
+                </a>
+              )}
+              {emergency.showExternalHelp && (
+                <a
+                  href={contact.externalHelpUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center rounded-full h-11 px-6 text-sm font-medium text-navy border border-navy hover:bg-navy/5 transition-colors"
+                >
+                  {contact.externalHelpLabel}
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>

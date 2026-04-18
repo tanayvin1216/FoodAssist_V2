@@ -46,6 +46,9 @@ next-env.d.ts
 .claude*
 CLAUDE.md
 
+# Supabase CLI local state
+supabase/.temp/
+
 # IDE
 .idea/
 .vscode/

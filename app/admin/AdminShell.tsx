@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Building2,
@@ -12,30 +12,54 @@ import {
   Menu,
   Settings,
   Eye,
+  HandHeart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Organizations', href: '/admin/organizations', icon: Building2 },
   { name: 'Council Donations', href: '/admin/donations', icon: Gift },
+  { name: 'Volunteers', href: '/admin/volunteers', icon: HandHeart },
   { name: 'Reports', href: '/admin/reports', icon: FileText },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+interface AdminShellProps {
+  adminName: string;
+  adminEmail: string;
+  children: React.ReactNode;
+}
+
+export default function AdminShell({
+  adminName,
+  adminEmail,
+  children,
+}: AdminShellProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navContent = (
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/admin/login');
+    router.refresh();
+  };
+
+  const NavContent = () => (
     <>
-      <div className="flex h-16 items-center px-4 border-b bg-blue-600">
+      <div className="flex h-16 items-center px-4 border-b" style={{ backgroundColor: '#1B2D3A' }}>
         <Link href="/admin" className="flex items-center space-x-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-white text-blue-600 font-bold text-sm">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded font-bold text-sm"
+            style={{ backgroundColor: '#0D7C8F', color: '#FFFFFF' }}
+          >
             FA
           </div>
           <span className="font-semibold text-white">Admin Portal</span>
@@ -52,65 +76,99 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               href={item.href}
               onClick={() => setSidebarOpen(false)}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded px-3 py-2 text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-100'
+                  ? 'text-white'
+                  : 'hover:bg-[#F5F0EB]'
               )}
+              style={
+                isActive
+                  ? { backgroundColor: '#0D7C8F' }
+                  : { color: '#4A5568' }
+              }
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className="h-5 w-5 flex-shrink-0" />
               {item.name}
             </Link>
           );
         })}
       </nav>
-      <div className="border-t p-4 space-y-2">
+      <div className="border-t p-4 space-y-2" style={{ borderColor: '#C4B8AD' }}>
+        <div className="px-3 py-2 mb-2">
+          <p className="text-xs font-medium truncate" style={{ color: '#1B2D3A' }}>
+            {adminName}
+          </p>
+          <p className="text-xs truncate" style={{ color: '#8C7E72' }}>
+            {adminEmail}
+          </p>
+        </div>
         <Link href="/">
-          <Button variant="ghost" className="w-full justify-start" size="sm">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-sm"
+            size="sm"
+            style={{ color: '#4A5568' }}
+          >
             <Eye className="h-4 w-4 mr-2" />
             View Public Site
           </Button>
         </Link>
-        <Link href="/">
-          <Button variant="ghost" className="w-full justify-start" size="sm">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </Link>
+        <Button
+          variant="ghost"
+          className="w-full justify-start text-sm"
+          size="sm"
+          style={{ color: '#4A5568' }}
+          onClick={handleSignOut}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="lg:hidden flex items-center justify-between px-4 h-16 bg-blue-600">
+    <div className="min-h-screen" style={{ backgroundColor: '#F5F0EB' }}>
+      {/* Mobile Header */}
+      <div
+        className="lg:hidden flex items-center justify-between px-4 h-16"
+        style={{ backgroundColor: '#1B2D3A' }}
+      >
         <Link href="/admin" className="flex items-center space-x-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-white text-blue-600 font-bold text-sm">
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded font-bold text-sm"
+            style={{ backgroundColor: '#0D7C8F', color: '#FFFFFF' }}
+          >
             FA
           </div>
           <span className="font-semibold text-white">Admin</span>
         </Link>
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-white">
+            <Button variant="ghost" size="icon" className="text-white hover:text-white hover:bg-white/10">
               <Menu className="h-6 w-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="left" className="w-64 p-0" style={{ backgroundColor: '#FFFFFF' }}>
             <div className="flex flex-col h-full">
-              {navContent}
+              <NavContent />
             </div>
           </SheetContent>
         </Sheet>
       </div>
 
       <div className="flex">
-        <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r">
-          {navContent}
+        {/* Desktop Sidebar */}
+        <aside
+          className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 border-r"
+          style={{ backgroundColor: '#FFFFFF', borderColor: '#C4B8AD' }}
+        >
+          <NavContent />
         </aside>
 
+        {/* Main Content */}
         <main className="flex-1 lg:pl-64">
-          <div className="content-container max-w-6xl py-8">{children}</div>
+          <div className="max-w-6xl py-8 px-6">{children}</div>
         </main>
       </div>
     </div>

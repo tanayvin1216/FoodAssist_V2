@@ -1,5 +1,6 @@
 'use client';
 
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,17 +8,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Loader2, Phone, Mail } from 'lucide-react';
-import { useContact } from '@/contexts/SettingsContext';
+import { useContact, useSettings } from '@/contexts/SettingsContext';
 import {
   contactSettingsSchema,
   ContactSettingsValues,
 } from '@/lib/validations/settings-schemas';
 import { toast } from 'sonner';
-import { useState } from 'react';
 
 export function ContactForm() {
-  const { contact, updateContact } = useContact();
-  const [isLoading, setIsLoading] = useState(false);
+  const { contact } = useContact();
+  const { refresh } = useSettings();
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
@@ -28,17 +29,29 @@ export function ContactForm() {
     defaultValues: contact,
   });
 
-  const onSubmit = async (data: ContactSettingsValues) => {
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      updateContact(data);
-      toast.success('Contact settings saved');
-    } catch {
-      toast.error('Failed to save settings');
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = (data: ContactSettingsValues) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contact: data }),
+        });
+        const json = (await res.json()) as { ok: boolean; error?: string; details?: unknown };
+        if (res.status === 401) {
+          toast.error('Your admin session has expired — sign in again.');
+          return;
+        }
+        if (json.ok) {
+          toast.success('Contact settings saved');
+          await refresh();
+        } else {
+          toast.error(json.error ?? 'Failed to save settings');
+        }
+      } catch {
+        toast.error('Failed to save settings');
+      }
+    });
   };
 
   return (
@@ -191,8 +204,8 @@ export function ContactForm() {
       </Card>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+        <Button type="submit" disabled={isPending}>
+          {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           Save Contact Info
         </Button>
       </div>

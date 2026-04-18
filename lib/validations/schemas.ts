@@ -7,18 +7,19 @@ import {
   NC_ZIP_CODE_PATTERN,
 } from '@/lib/utils/constants';
 
-// Phone validation with formatting
-const phoneSchema = z
-  .string()
-  .min(1, 'Phone number is required')
-  .transform((val) => val.replace(/\D/g, ''))
-  .refine((val) => val.length === 10, 'Phone number must be 10 digits');
+// Phone: optional at the schema level, kept as the user entered it.
+// Real-world data (import + admin quick-add) often has extensions,
+// slashes, or is missing entirely. The public directory treats it as
+// a tel: link either way.
+const phoneSchema = z.string().max(60).optional().or(z.literal(''));
 
-// NC zip code validation
-const zipSchema = z
-  .string()
-  .min(1, 'ZIP code is required')
-  .refine((val) => NC_ZIP_CODE_PATTERN.test(val), 'Please enter a valid NC ZIP code (28XXX)');
+// ZIP: optional; when present, accept any 5-digit sequence (coastal
+// NC covers multiple 28xxx codes but rows come in without them too).
+const zipSchema = z.string().max(20).optional().or(z.literal(''));
+
+// URL: empty, a real URL, or a bare domain. Any non-empty string
+// passes; the UI/import layer normalizes (adds https://) before save.
+const urlSchema = z.string().max(500).optional().or(z.literal(''));
 
 // Operating hours schema
 export const operatingHoursSchema = z.object({
@@ -43,17 +44,23 @@ export const storageCapacitySchema = z.object({
   notes: z.string().optional(),
 });
 
-// Organization schema
+// Organization schema.
+// Design note — importer tolerance: only `name`, `town`, and at least
+// one `assistance_type` are truly required. Address/phone/zip/email/URL
+// are optional because the seed data (Google Form responses from the
+// real-world Carteret County Master Database) routinely ships with
+// them missing or malformed. Invalid values are coerced or dropped at
+// the import boundary rather than rejecting the whole row.
 export const organizationSchema = z.object({
   name: z.string().min(1, 'Organization name is required').max(200),
-  address: z.string().min(1, 'Address is required').max(500),
+  address: z.string().max(500).optional().or(z.literal('')),
   town: z.string().min(1, 'Town is required'),
   zip: zipSchema,
   contact_name: z.string().max(100).optional(),
   phone: phoneSchema,
-  email: z.string().email('Invalid email address').optional().or(z.literal('')),
-  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
-  facebook: z.string().url('Invalid Facebook URL').optional().or(z.literal('')),
+  email: z.string().max(200).optional().or(z.literal('')),
+  website: urlSchema,
+  facebook: urlSchema,
   assistance_types: z
     .array(z.enum(ASSISTANCE_TYPES as [string, ...string[]]))
     .min(1, 'Select at least one assistance type'),
@@ -64,19 +71,22 @@ export const organizationSchema = z.object({
   hours_notes: z.string().max(500).optional(),
   donations_accepted: z.array(z.enum(DONATION_TYPES as [string, ...string[]])),
   storage_capacity: storageCapacitySchema.optional(),
-  comments: z.string().max(1000).optional(),
+  comments: z.string().max(2000).optional(),
   is_active: z.boolean(),
   spanish_available: z.boolean(),
 });
 
-// Council donation schema
+// Council donation schema — form-facing fields only.
+// `recorded_by` is intentionally excluded: the server action injects it from
+// the authenticated session (session.profile.name ?? session.email) before INSERT.
+// This prevents client-side spoofing of the recorder identity.
+// See: docs/backend-integration/phase2-admin-crud.md, Page 4 "recorded_by decision".
 export const councilDonationSchema = z.object({
   organization_id: z.string().uuid('Invalid organization'),
   donation_date: z.string().min(1, 'Donation date is required'),
   amount: z.number().positive('Amount must be positive').optional(),
   donation_type: z.enum(['money', 'food', 'supplies', 'other']),
   description: z.string().min(1, 'Description is required').max(1000),
-  recorded_by: z.string().min(1, 'Recorder name is required'),
 });
 
 // Volunteer need schema
@@ -105,17 +115,6 @@ export const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Signup schema
-export const signupSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string(),
-  name: z.string().min(1, 'Name is required').max(100),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-});
-
 // Directory filter schema
 export const directoryFilterSchema = z.object({
   search: z.string().optional(),
@@ -126,11 +125,95 @@ export const directoryFilterSchema = z.object({
   servedPopulations: z.array(z.enum(SERVED_POPULATIONS as [string, ...string[]])).optional(),
 });
 
+// ============== Settings patch schema ==============
+// Mirrors the 6 JSONB columns of the site_settings table.
+// Each group is a shallow partial — only supplied keys are merged.
+// Unknown top-level keys are rejected (strict).
+
+const navigationItemPatchSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  href: z.string(),
+  enabled: z.boolean(),
+  order: z.number().int(),
+  showInHeader: z.boolean(),
+  showInFooter: z.boolean(),
+});
+
+export const settingsPatchSchema = z
+  .object({
+    branding: z
+      .object({
+        siteName: z.string().optional(),
+        siteTagline: z.string().optional(),
+        logoAbbreviation: z.string().optional(),
+        primaryColor: z.string().optional(),
+        footerTagline: z.string().optional(),
+      })
+      .optional(),
+    contact: z
+      .object({
+        organizationName: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        state: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        emergencyPhone: z.string().optional(),
+        emergencyPhoneDisplay: z.string().optional(),
+        externalHelpUrl: z.string().url().optional(),
+        externalHelpLabel: z.string().optional(),
+      })
+      .optional(),
+    hero: z
+      .object({
+        locationBadge: z.string().optional(),
+        headline: z.string().optional(),
+        subtitle: z.string().optional(),
+        showStats: z.boolean().optional(),
+        statsLabels: z
+          .object({
+            locations: z.string().optional(),
+            towns: z.string().optional(),
+            services: z.string().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
+    emergency: z
+      .object({
+        enabled: z.boolean().optional(),
+        icon: z.enum(['heart', 'phone', 'alert']).optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        showPrimaryPhone: z.boolean().optional(),
+        showExternalHelp: z.boolean().optional(),
+      })
+      .optional(),
+    navigation: z
+      .object({
+        headerItems: z.array(navigationItemPatchSchema).optional(),
+        footerQuickLinks: z.array(navigationItemPatchSchema).optional(),
+        showSignIn: z.boolean().optional(),
+        signInLabel: z.string().optional(),
+      })
+      .optional(),
+    metadata: z
+      .object({
+        title: z.string().optional(),
+        description: z.string().optional(),
+        keywords: z.array(z.string()).optional(),
+      })
+      .optional(),
+  })
+  .strict(); // rejects unknown top-level keys
+
+export type SettingsPatch = z.infer<typeof settingsPatchSchema>;
+
 // Export types inferred from schemas
 export type OrganizationFormValues = z.infer<typeof organizationSchema>;
 export type CouncilDonationFormValues = z.infer<typeof councilDonationSchema>;
 export type VolunteerNeedFormValues = z.infer<typeof volunteerNeedSchema>;
 export type ProfileFormValues = z.infer<typeof profileSchema>;
 export type LoginFormValues = z.infer<typeof loginSchema>;
-export type SignupFormValues = z.infer<typeof signupSchema>;
 export type DirectoryFilterValues = z.infer<typeof directoryFilterSchema>;

@@ -1,153 +1,155 @@
+/**
+ * Volunteers page — Server Component.
+ * Fetches active volunteer needs from Supabase; each need includes embedded
+ * organization data (id + name) via the joined select in getVolunteerNeeds.
+ * Empty-state (zero needs) is rendered inline below.
+ */
 import Link from 'next/link';
 import { Users, Clock, Mail, Calendar, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { sampleVolunteerNeeds, sampleOrganizations } from '@/lib/utils/sampleData';
+import { createClient } from '@/lib/supabase/server';
+import { getVolunteerNeeds } from '@/lib/supabase/queries';
+import { Organization } from '@/types/database';
 import { formatDate } from '@/lib/utils/formatters';
+import { getServerTranslator } from '@/lib/i18n/server';
 
-export default function VolunteersPage() {
-  const activeNeeds = sampleVolunteerNeeds.filter((v) => v.is_active);
+export const revalidate = 3600;
 
-  const getOrganization = (id: string) => {
-    return sampleOrganizations.find((o) => o.id === id);
-  };
+export default async function VolunteersPage() {
+  const supabase = await createClient();
+  const [activeNeeds, { t, locale }] = await Promise.all([
+    getVolunteerNeeds(supabase),
+    getServerTranslator(),
+  ]);
 
   return (
-    <div className="bg-slate-50 min-h-screen">
-      {/* Hero with Background Image */}
-      <section className="relative overflow-hidden">
-        {/* Background Image */}
+    <div className="min-h-screen">
+      <section className="relative min-h-[360px] md:min-h-[400px] flex items-center overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(/volunteer-hero.jpg)' }}
+          style={{ backgroundImage: 'url(/volunteer-hero.jpg)', backgroundColor: '#1E3A5F' }}
         />
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/80" />
-
-        <div className="content-container py-16 md:py-20 relative">
-          <div className="max-w-xl mx-auto text-center">
-            <div className="w-14 h-14 mx-auto mb-4 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/20">
-              <Users className="w-7 h-7 text-white" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Volunteer Opportunities
+        <div className="absolute inset-0 bg-navy/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-navy/30" />
+        <div className="container px-6 pb-10 pt-24 md:pb-14 md:pt-32 relative text-center max-w-5xl mx-auto">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-sm font-medium text-white/70 mb-4 tracking-wide uppercase">
+              {locale === 'es' ? 'Involúcrese' : 'Get Involved'}
+            </p>
+            <h1 className="font-display text-4xl md:text-5xl text-white leading-[1.1] mb-6">
+              {t('vol.headline')}
             </h1>
-            <p className="text-lg text-white/80">
-              Make a difference in your community by volunteering with local
-              food assistance organizations.
+            <p className="text-lg text-white/80 max-w-lg mx-auto">
+              {t('vol.subtitle')}
             </p>
           </div>
         </div>
       </section>
 
-      {/* Content */}
-      <section className="content-container py-10">
+      <section className="container px-6 pb-16 mx-auto max-w-5xl">
         <div className="max-w-2xl mx-auto">
           {activeNeeds.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-              <div className="w-14 h-14 mx-auto mb-4 bg-slate-100 rounded-2xl flex items-center justify-center">
-                <Users className="w-7 h-7 text-slate-400" />
-              </div>
-              <h2 className="text-xl font-semibold text-slate-800 mb-2">
-                No Volunteer Opportunities Available
+            <div className="text-center py-16">
+              <Users className="w-5 h-5 mx-auto mb-3 text-muted-text" />
+              <h2 className="text-lg font-semibold text-navy mb-2">
+                {t('vol.empty.title')}
               </h2>
-              <p className="text-slate-500">
-                Check back soon for new volunteer opportunities, or contact an
-                organization directly to offer your help.
+              <p className="text-sm text-body-text">
+                {t('vol.empty.body')}
               </p>
             </div>
           ) : (
-            <div className="space-y-5">
-              <p className="text-slate-500 text-sm">
-                {activeNeeds.length} volunteer{' '}
-                {activeNeeds.length === 1 ? 'opportunity' : 'opportunities'}{' '}
-                available
+            <div className="space-y-4">
+              <p className="text-sm text-muted-text mb-2">
+                {activeNeeds.length}{' '}
+                {locale === 'es'
+                  ? activeNeeds.length === 1 ? 'oportunidad de voluntariado disponible' : 'oportunidades de voluntariado disponibles'
+                  : activeNeeds.length === 1 ? 'volunteer opportunity available' : 'volunteer opportunities available'}
               </p>
 
               {activeNeeds.map((need) => {
-                const org = getOrganization(need.organization_id);
+                // organization is embedded by getVolunteerNeeds via joined select
+                const org: Pick<Organization, 'id' | 'name'> | undefined = need.organization;
                 return (
-                  <div key={need.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-                    <div className="p-5">
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                        <div>
-                          <h3 className="text-lg font-semibold text-slate-800">{need.title}</h3>
-                          {org && (
-                            <Link
-                              href={`/organization/${org.id}`}
-                              className="text-sm text-slate-600 hover:text-slate-800"
-                            >
-                              {org.name}
-                            </Link>
-                          )}
-                        </div>
-                        {need.needed_date && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium">
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(need.needed_date)}
-                          </span>
-                        )}
-                      </div>
-
-                      <p className="text-slate-600 mb-4">{need.description}</p>
-
-                      <div className="flex flex-wrap gap-4 text-sm text-slate-500 mb-4">
-                        {need.time_commitment && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4 text-slate-400" />
-                            <span>{need.time_commitment}</span>
-                          </div>
-                        )}
-                        {need.contact_email && (
-                          <div className="flex items-center gap-1">
-                            <Mail className="w-4 h-4 text-slate-500" />
-                            <a
-                              href={`mailto:${need.contact_email}`}
-                              className="text-slate-600 hover:text-slate-800"
-                            >
-                              {need.contact_email}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-
-                      {need.needed_skills && need.needed_skills.length > 0 && (
-                        <div className="mb-4">
-                          <p className="text-xs font-medium text-slate-500 mb-2">
-                            Skills / Requirements:
-                          </p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {need.needed_skills.map((skill, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-700 rounded-md"
-                              >
-                                {skill}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        {need.contact_email && (
-                          <a
-                            href={`mailto:${need.contact_email}`}
-                            className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-sm font-medium rounded-xl transition-colors inline-flex items-center gap-2"
-                          >
-                              <Mail className="w-4 h-4" />
-                              Contact to Volunteer
-                          </a>
-                        )}
+                  <div key={need.id} className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                      <div>
+                        <h3 className="text-lg font-semibold text-navy">{need.title}</h3>
                         {org && (
                           <Link
                             href={`/organization/${org.id}`}
-                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-xl transition-colors inline-flex items-center gap-2"
+                            className="text-sm text-body-text hover:text-navy transition-colors"
                           >
-                              View Organization
-                              <ArrowRight className="w-4 h-4" />
+                            {org.name}
                           </Link>
                         )}
                       </div>
+                      {need.needed_date && (
+                        <span className="inline-flex items-center gap-1 text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(need.needed_date)}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-sm text-body-text mb-4">{need.description}</p>
+
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-text mb-4">
+                      {need.time_commitment && (
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-muted-text" />
+                          <span>{need.time_commitment}</span>
+                        </div>
+                      )}
+                      {need.contact_email && (
+                        <div className="flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-muted-text" />
+                          <a
+                            href={`mailto:${need.contact_email}`}
+                            className="hover:text-navy transition-colors"
+                          >
+                            {need.contact_email}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {need.needed_skills && need.needed_skills.length > 0 && (
+                      <div className="mb-4">
+                        <p className="text-xs text-muted-text mb-2 uppercase tracking-wider">
+                          {t('vol.requirementsLabel')}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {need.needed_skills.map((skill) => (
+                            <span
+                              key={skill}
+                              className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-2">
+                      {need.contact_email && (
+                        <a
+                          href={`mailto:${need.contact_email}`}
+                          className="rounded-full h-11 px-6 text-sm font-medium text-white bg-navy hover:bg-navy-light transition-colors flex items-center gap-2"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          {t('vol.contact')}
+                        </a>
+                      )}
+                      {org && (
+                        <Link
+                          href={`/organization/${org.id}`}
+                          className="rounded-full h-11 px-6 text-sm font-medium text-navy border border-navy hover:bg-navy/5 transition-colors flex items-center gap-2"
+                        >
+                          {t('vol.viewOrg')}
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Link>
+                      )}
                     </div>
                   </div>
                 );
@@ -155,20 +157,24 @@ export default function VolunteersPage() {
             </div>
           )}
 
-          {/* CTA */}
-          <div className="mt-10 bg-slate-700 rounded-2xl p-6 text-center text-white">
-            <h2 className="text-xl font-semibold mb-2">
-              Are you a food assistance organization?
-            </h2>
-            <p className="text-slate-300 text-sm mb-4">
-              Post your volunteer needs to connect with community helpers.
+          <div className="mt-12 bg-navy rounded-2xl p-8 text-center">
+            <p className="text-xs font-medium uppercase tracking-wider text-white/60 mb-2">
+              {locale === 'es' ? 'Para organizaciones' : 'For Organizations'}
+            </p>
+            <p className="text-white text-xl font-semibold mb-2">
+              {locale === 'es' ? 'Publique sus necesidades de voluntariado' : 'Post your volunteer needs'}
+            </p>
+            <p className="text-white/60 text-sm mb-6">
+              {locale === 'es'
+                ? 'Conéctese con ayudantes de la comunidad publicando sus oportunidades de voluntariado.'
+                : 'Connect with community helpers by listing your volunteer opportunities.'}
             </p>
             <Link
-              href="/portal/dashboard"
-              className="px-5 py-2.5 bg-white text-slate-700 font-medium rounded-xl hover:bg-slate-100 transition-colors text-sm inline-flex items-center gap-2"
+              href="/portal/login"
+              className="rounded-full h-11 px-6 text-sm font-medium text-navy bg-white hover:bg-white/90 transition-colors inline-flex items-center gap-2"
             >
-                Access Organization Portal
-                <ArrowRight className="w-4 h-4" />
+              {locale === 'es' ? 'Acceder al portal de organización' : 'Access Organization Portal'}
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>

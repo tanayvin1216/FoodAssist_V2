@@ -2,46 +2,52 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, Utensils } from 'lucide-react';
+import { Menu, X, ChevronDown, Shield, Building2 } from 'lucide-react';
 import { useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useBranding, useNavigation } from '@/contexts/SettingsContext';
+import { useTranslation } from '@/contexts/LocaleContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { branding } = useBranding();
   const { navigation: navSettings } = useNavigation();
+  const { t } = useTranslation();
 
+  // Sign-in is not a public concept on this site — admin + organization logins
+  // live at dedicated URLs reachable from the footer.
   const headerItems = navSettings.headerItems
     .filter((item) => item.enabled && item.showInHeader)
     .sort((a, b) => a.order - b.order);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-slate-200">
-      <div className="content-container flex h-14 items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-slate-700 flex items-center justify-center">
-            <Utensils className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-bold text-lg text-slate-800 hidden sm:block">
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm shadow-sm">
+      <div className="container flex h-16 items-center justify-between px-6 max-w-5xl mx-auto">
+        <Link href="/" className="flex items-center gap-3">
+          <span className="font-display text-xl tracking-tight text-navy">
             {branding.siteName}
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-8">
           {headerItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.id}
                 href={item.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`text-sm transition-colors ${
                   isActive
-                    ? 'bg-slate-100 text-slate-800'
-                    : 'text-slate-600 hover:text-slate-800 hover:bg-slate-50'
+                    ? 'text-navy font-medium'
+                    : 'text-body-text hover:text-navy'
                 }`}
               >
                 {item.name}
@@ -50,57 +56,95 @@ export function Header() {
           })}
         </nav>
 
-        {/* Desktop Sign In */}
-        {navSettings.showSignIn && (
-          <Link
-            href="/login"
-            className="hidden md:block px-4 py-2 text-slate-600 hover:text-slate-800 font-medium text-sm transition-colors"
-          >
-            {navSettings.signInLabel}
-          </Link>
-        )}
+        <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="hidden md:inline-flex items-center gap-1.5 h-9 px-4 text-sm font-medium text-navy border border-navy/20 rounded-full hover:bg-navy/5 transition-colors"
+                aria-label={t('nav.signIn')}
+              >
+                {t('nav.signIn')}
+                <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="text-xs font-medium uppercase tracking-wider text-muted-text">
+                {t('nav.signInStaffPartners')}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href="/portal/login" className="flex items-start gap-3 py-2 cursor-pointer">
+                  <Building2 className="h-4 w-4 mt-0.5 text-navy" />
+                  <div>
+                    <p className="text-sm font-medium text-navy">{t('nav.signInOrg')}</p>
+                    <p className="text-xs text-muted-text">{t('nav.signInOrgHint')}</p>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/admin/login" className="flex items-start gap-3 py-2 cursor-pointer">
+                  <Shield className="h-4 w-4 mt-0.5 text-navy" />
+                  <div>
+                    <p className="text-sm font-medium text-navy">{t('nav.signInAdmin')}</p>
+                    <p className="text-xs text-muted-text">{t('nav.signInAdminHint')}</p>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* Mobile Menu */}
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger aria-label="Open navigation menu" className="md:hidden p-2 rounded-lg hover:bg-slate-50 transition-colors">
-            <Menu className="h-5 w-5 text-slate-600" />
-          </SheetTrigger>
-          <SheetContent side="bottom" className="rounded-t-2xl h-auto pb-8">
-            <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-6 mt-2" />
-            <nav className="flex flex-col gap-1">
-              {headerItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={`px-4 py-3.5 rounded-xl text-base font-medium transition-colors ${
-                      isActive
-                        ? 'bg-slate-700 text-white'
-                        : 'text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    {item.name}
-                  </Link>
-                );
-              })}
-              {navSettings.showSignIn && (
-                <>
-                  <hr className="my-2 border-slate-100" />
-                  <Link
-                    href="/login"
-                    onClick={() => setOpen(false)}
-                    className="px-4 py-3.5 text-base font-medium text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
-                  >
-                    {navSettings.signInLabel}
-                  </Link>
-                </>
-              )}
-            </nav>
-          </SheetContent>
-        </Sheet>
+          <button
+            onClick={() => setOpen(!open)}
+            aria-label={open ? t('nav.closeMenu') : t('nav.openMenu')}
+            className="md:hidden p-2 text-muted-text hover:text-navy transition-colors"
+          >
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+        </div>
       </div>
+
+      {open && (
+        <div className="md:hidden bg-white shadow-lg">
+          <nav className="container px-6 py-4 flex flex-col gap-1 max-w-5xl mx-auto">
+            {headerItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`py-3 text-base transition-colors ${
+                    isActive
+                      ? 'text-navy font-medium'
+                      : 'text-body-text hover:text-navy'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
+            <div className="mt-2 pt-3 border-t border-divider/50 flex flex-col gap-1">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-text mb-1">
+                {t('nav.signIn')}
+              </p>
+              <Link
+                href="/portal/login"
+                onClick={() => setOpen(false)}
+                className="py-2 text-sm text-body-text hover:text-navy flex items-center gap-2"
+              >
+                <Building2 className="h-4 w-4" /> {t('nav.signInOrg')}
+              </Link>
+              <Link
+                href="/admin/login"
+                onClick={() => setOpen(false)}
+                className="py-2 text-sm text-body-text hover:text-navy flex items-center gap-2"
+              >
+                <Shield className="h-4 w-4" /> {t('nav.signInAdmin')}
+              </Link>
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

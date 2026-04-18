@@ -1,5 +1,6 @@
 'use client';
 
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,17 +9,17 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Loader2, Palette } from 'lucide-react';
-import { useBranding } from '@/contexts/SettingsContext';
+import { useBranding, useSettings } from '@/contexts/SettingsContext';
 import {
   brandingSettingsSchema,
   BrandingSettingsValues,
 } from '@/lib/validations/settings-schemas';
 import { toast } from 'sonner';
-import { useState } from 'react';
 
 export function BrandingForm() {
-  const { branding, updateBranding } = useBranding();
-  const [isLoading, setIsLoading] = useState(false);
+  const { branding } = useBranding();
+  const { refresh } = useSettings();
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
@@ -29,18 +30,29 @@ export function BrandingForm() {
     defaultValues: branding,
   });
 
-  const onSubmit = async (data: BrandingSettingsValues) => {
-    setIsLoading(true);
-    try {
-      // Simulate save delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      updateBranding(data);
-      toast.success('Branding settings saved');
-    } catch {
-      toast.error('Failed to save settings');
-    } finally {
-      setIsLoading(false);
-    }
+  const onSubmit = (data: BrandingSettingsValues) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ branding: data }),
+        });
+        const json = (await res.json()) as { ok: boolean; error?: string; details?: unknown };
+        if (res.status === 401) {
+          toast.error('Your admin session has expired — sign in again.');
+          return;
+        }
+        if (json.ok) {
+          toast.success('Branding settings saved');
+          await refresh();
+        } else {
+          toast.error(json.error ?? 'Failed to save settings');
+        }
+      } catch {
+        toast.error('Failed to save settings');
+      }
+    });
   };
 
   return (
@@ -116,8 +128,8 @@ export function BrandingForm() {
           </div>
 
           <div className="flex justify-end">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Save Branding
             </Button>
           </div>
