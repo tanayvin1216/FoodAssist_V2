@@ -55,7 +55,7 @@ cp .env.example .env.local  # add your Supabase URL and anon key
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The app runs on sample data without Supabase — use the **Demo Login** button on the login page to access the portal.
+Open [http://localhost:3000](http://localhost:3000). Sign in at `/portal/login` using the credentials from your Supabase project.
 
 ---
 
