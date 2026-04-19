@@ -18,7 +18,7 @@
 
 ### Built for Carteret County, North Carolina
 
-### **[View Live Demo →](foodassist-v2-two.vercel.app/)**
+### **[View Live Demo →](foodassist-v2-two.vercel.app)**
 
 <br/>
 
