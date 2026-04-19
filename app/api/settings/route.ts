@@ -5,7 +5,11 @@ import { requireAdmin } from '@/lib/supabase/auth';
 import { getSiteSettings, updateSiteSettings } from '@/lib/supabase/queries';
 import { settingsPatchSchema, SettingsPatch } from '@/lib/validations/schemas';
 
-// GET /api/settings — public, cached
+// GET /api/settings
+// Intentionally uncached: admin saves must be visible immediately, and Vercel
+// edge cache keys on URL alone (no Vary header), so a cached response would
+// get shared between the public site and the admin's refresh() call and make
+// saves look like they silently revert.
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -16,7 +20,7 @@ export async function GET() {
       {
         status: 200,
         headers: {
-          'Cache-Control': 's-maxage=60, stale-while-revalidate=300',
+          'Cache-Control': 'no-store, must-revalidate',
         },
       }
     );

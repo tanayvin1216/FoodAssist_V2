@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,11 +24,20 @@ export function BrandingForm() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<BrandingSettingsValues>({
     resolver: zodResolver(brandingSettingsSchema),
     defaultValues: branding,
   });
+
+  // Re-sync form fields whenever the settings context changes (e.g. after a
+  // successful save + refresh). useForm only reads defaultValues on mount, so
+  // without this, the form stays pinned to the first render's values and
+  // subsequent saves appear to "stick to the old value".
+  useEffect(() => {
+    reset(branding);
+  }, [branding, reset]);
 
   const onSubmit = (data: BrandingSettingsValues) => {
     startTransition(async () => {

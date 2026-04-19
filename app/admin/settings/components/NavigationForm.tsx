@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +26,16 @@ export function NavigationForm() {
   const [footerLinks, setFooterLinks] = useState(navigation.footerQuickLinks);
   const [showSignIn, setShowSignIn] = useState(navigation.showSignIn);
   const [signInLabel, setSignInLabel] = useState(navigation.signInLabel);
+
+  // Re-seed local editable state whenever the settings context updates — e.g.
+  // after a successful save + refresh. Without this, useState freezes on the
+  // mount-time snapshot and the form appears to "revert" after saving.
+  useEffect(() => {
+    setHeaderItems(navigation.headerItems);
+    setFooterLinks(navigation.footerQuickLinks);
+    setShowSignIn(navigation.showSignIn);
+    setSignInLabel(navigation.signInLabel);
+  }, [navigation]);
 
   const handleSave = () => {
     startTransition(async () => {

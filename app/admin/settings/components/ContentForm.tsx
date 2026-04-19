@@ -24,7 +24,7 @@ import {
   EmergencySettingsValues,
 } from '@/lib/validations/settings-schemas';
 import { toast } from 'sonner';
-import { useTransition } from 'react';
+import { useEffect, useTransition } from 'react';
 
 export function ContentForm() {
   return (
@@ -45,11 +45,17 @@ function HeroForm() {
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<HeroSettingsValues>({
     resolver: zodResolver(heroSettingsSchema),
     defaultValues: hero,
   });
+
+  // Keep form in sync with context after refresh (see BrandingForm comment).
+  useEffect(() => {
+    reset(hero);
+  }, [hero, reset]);
 
   const showStats = watch('showStats');
 
@@ -189,11 +195,17 @@ function EmergencyForm() {
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<EmergencySettingsValues>({
     resolver: zodResolver(emergencySettingsSchema),
     defaultValues: emergency,
   });
+
+  // Keep form in sync with context after refresh (see BrandingForm comment).
+  useEffect(() => {
+    reset(emergency);
+  }, [emergency, reset]);
 
   const enabled = watch('enabled');
   const currentIcon = watch('icon');

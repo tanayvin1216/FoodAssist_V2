@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,11 +23,17 @@ export function ContactForm() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ContactSettingsValues>({
     resolver: zodResolver(contactSettingsSchema),
     defaultValues: contact,
   });
+
+  // Re-sync form fields when context updates (see BrandingForm for rationale).
+  useEffect(() => {
+    reset(contact);
+  }, [contact, reset]);
 
   const onSubmit = (data: ContactSettingsValues) => {
     startTransition(async () => {
