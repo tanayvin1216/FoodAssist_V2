@@ -13,6 +13,7 @@ import {
   Settings,
   Eye,
   HandHeart,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -25,6 +26,7 @@ const navigation = [
   { name: 'Organizations', href: '/admin/organizations', icon: Building2 },
   { name: 'Council Donations', href: '/admin/donations', icon: Gift },
   { name: 'Volunteers', href: '/admin/volunteers', icon: HandHeart },
+  { name: 'Applications', href: '/admin/volunteer-applications', icon: ClipboardList },
   { name: 'Reports', href: '/admin/reports', icon: FileText },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
