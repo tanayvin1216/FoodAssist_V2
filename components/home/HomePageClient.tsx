@@ -38,18 +38,16 @@ export function HomePageClient({ organizations, towns }: HomePageClientProps) {
             <p className="text-lg text-white/80 leading-relaxed max-w-lg mx-auto mb-8">
               {t('hero.subtitle')}
             </p>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 backdrop-blur-sm rounded-full border border-white/20">
-                <strong className="text-white text-lg font-semibold">{organizations.length}</strong>
-                <span className="text-white/70 text-sm">{t('hero.stat.locations')}</span>
-              </div>
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 backdrop-blur-sm rounded-full border border-white/20">
-                <strong className="text-white text-lg font-semibold">{towns.length}</strong>
-                <span className="text-white/70 text-sm">{t('hero.stat.towns')}</span>
-              </div>
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 backdrop-blur-sm rounded-full border border-white/20">
-                <span className="text-white/70 text-sm">{t('hero.stat.freeServices')}</span>
-              </div>
+            <div className="flex items-center justify-center gap-x-8 gap-y-2 flex-wrap text-white">
+              <span className="text-sm">
+                <strong className="text-lg font-semibold">{organizations.length}</strong>
+                <span className="text-white/70 ml-1.5">{t('hero.stat.locations')}</span>
+              </span>
+              <span className="text-sm">
+                <strong className="text-lg font-semibold">{towns.length}</strong>
+                <span className="text-white/70 ml-1.5">{t('hero.stat.towns')}</span>
+              </span>
+              <span className="text-sm text-white/70">{t('hero.stat.freeServices')}</span>
             </div>
           </div>
         </div>
