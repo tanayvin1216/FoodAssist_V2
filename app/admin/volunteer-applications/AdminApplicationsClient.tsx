@@ -66,6 +66,13 @@ export function AdminApplicationsClient({
       <ApplicationsTable
         applications={filtered}
         showOrganization
+        exportFilename={
+          orgFilter === 'all'
+            ? 'carteret-volunteer-applications.csv'
+            : orgFilter === 'general'
+              ? 'general-volunteer-applications.csv'
+              : `${organizations.find((o) => o.id === orgFilter)?.name?.toLowerCase().replace(/\s+/g, '-') ?? 'org'}-applications.csv`
+        }
         onReview={adminReviewApplicationAction}
       />
     </div>

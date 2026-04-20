@@ -1,18 +1,20 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
-import { Check, Mail, Phone, X, MessageSquare, Clock } from 'lucide-react';
+import { Check, Mail, Phone, X, MessageSquare, Clock, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import type {
   VolunteerApplication,
   VolunteerApplicationStatus,
 } from '@/types/database';
+import { applicationsToCSV, triggerCSVDownload } from '@/lib/utils/csv';
 
 type StatusFilter = 'all' | VolunteerApplicationStatus;
 
 interface ApplicationsTableProps {
   applications: VolunteerApplication[];
   showOrganization?: boolean;
+  exportFilename?: string;
   onReview: (input: {
     id: string;
     status: VolunteerApplicationStatus;
@@ -37,6 +39,7 @@ const STATUS_STYLES: Record<VolunteerApplicationStatus, string> = {
 export function ApplicationsTable({
   applications,
   showOrganization = false,
+  exportFilename = 'volunteer-applications.csv',
   onReview,
 }: ApplicationsTableProps) {
   const [filter, setFilter] = useState<StatusFilter>('all');
@@ -76,6 +79,16 @@ export function ApplicationsTable({
     return base;
   }, [applications]);
 
+  const handleExport = () => {
+    if (filtered.length === 0) {
+      toast.error('Nothing to export with current filters');
+      return;
+    }
+    const csv = applicationsToCSV(filtered);
+    const stamp = new Date().toISOString().slice(0, 10);
+    triggerCSVDownload(csv, exportFilename.replace(/\.csv$/, '') + `-${stamp}.csv`);
+  };
+
   const review = (
     id: string,
     status: VolunteerApplicationStatus,
@@ -110,13 +123,23 @@ export function ApplicationsTable({
             </button>
           ))}
         </div>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search name, email, opportunity…"
-          className="h-9 w-full sm:w-64 rounded-full border border-divider bg-white px-4 text-sm text-navy focus:outline-none focus:border-navy"
-        />
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search name, email, opportunity…"
+            className="h-9 w-full sm:w-64 rounded-full border border-divider bg-white px-4 text-sm text-navy focus:outline-none focus:border-navy"
+          />
+          <button
+            type="button"
+            onClick={handleExport}
+            className="h-9 px-3 rounded-full border border-divider bg-white text-body-text hover:bg-navy/5 text-xs font-medium inline-flex items-center gap-1.5 whitespace-nowrap"
+          >
+            <Download className="w-3.5 h-3.5" />
+            CSV
+          </button>
+        </div>
       </div>
 
       {filtered.length === 0 ? (

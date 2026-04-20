@@ -12,6 +12,7 @@ export function PortalApplicationsClient({ applications }: PortalApplicationsCli
   return (
     <ApplicationsTable
       applications={applications}
+      exportFilename="our-volunteer-applications.csv"
       onReview={reviewApplicationAction}
     />
   );
