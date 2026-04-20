@@ -11,6 +11,7 @@ import { getVolunteerNeeds } from '@/lib/supabase/queries';
 import { Organization } from '@/types/database';
 import { formatDate } from '@/lib/utils/formatters';
 import { getServerTranslator } from '@/lib/i18n/server';
+import { VolunteerApplicationForm } from '@/components/volunteers/VolunteerApplicationForm';
 
 export const revalidate = 3600;
 
@@ -156,6 +157,48 @@ export default async function VolunteersPage() {
               })}
             </div>
           )}
+
+          <div id="apply" className="mt-12 scroll-mt-20">
+            <VolunteerApplicationForm
+              needs={activeNeeds.map((n) => ({
+                id: n.id,
+                title: `${n.title}${n.organization?.name ? ' — ' + n.organization.name : ''}`,
+                organization_id: n.organization_id,
+              }))}
+              heading={locale === 'es' ? 'Postúlese para ser voluntario' : 'Apply to volunteer'}
+              subheading={
+                locale === 'es'
+                  ? 'Un equipo de la organización o un asesor del condado se pondrá en contacto con usted.'
+                  : 'An organization team member or county advisor will reach out to you.'
+              }
+              fields={{
+                opportunity: locale === 'es' ? 'Oportunidad (opcional)' : 'Opportunity (optional)',
+                opportunityGeneral:
+                  locale === 'es'
+                    ? 'Solicitud general — enviar al asesor del condado'
+                    : 'General application — send to county advisor',
+                name: locale === 'es' ? 'Nombre completo' : 'Full name',
+                email: locale === 'es' ? 'Correo electrónico' : 'Email',
+                phone: locale === 'es' ? 'Teléfono (opcional)' : 'Phone (optional)',
+                willing: locale === 'es' ? '¿Con qué está dispuesto a ayudar?' : 'What are you willing to help with?',
+                willingPlaceholder:
+                  locale === 'es'
+                    ? 'Ej: preparar comidas, entregar alimentos, clasificar donaciones…'
+                    : 'e.g. prepare meals, deliver food, sort donations…',
+                hours: locale === 'es' ? 'Horas por semana' : 'Hours per week',
+                hoursPlaceholder: locale === 'es' ? 'Ej: 2 a 5 horas' : 'e.g. 2–5 hours',
+                availability: locale === 'es' ? 'Disponibilidad' : 'Availability',
+                availabilityPlaceholder:
+                  locale === 'es' ? 'Ej: sábados por la mañana' : 'e.g. Saturday mornings',
+                submit: locale === 'es' ? 'Enviar solicitud' : 'Submit application',
+                submitting: locale === 'es' ? 'Enviando…' : 'Submitting…',
+                success:
+                  locale === 'es'
+                    ? '¡Gracias! Hemos recibido su solicitud.'
+                    : 'Thanks! We’ve received your application.',
+              }}
+            />
+          </div>
 
           <div className="mt-12 bg-navy rounded-2xl p-8 text-center">
             <p className="text-xs font-medium uppercase tracking-wider text-white/60 mb-2">
