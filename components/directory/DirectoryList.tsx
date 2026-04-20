@@ -1,18 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Organization, DirectoryFilters } from '@/types/database';
 import { FilterPanel } from './FilterPanel';
 import { OrgCardSimple } from './OrgCardSimple';
 import { useTranslation } from '@/contexts/LocaleContext';
 import { LanguageToggle } from '@/components/layout/LanguageToggle';
-import {
-  Loader2,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  SlidersHorizontal,
-} from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal } from 'lucide-react';
 
 interface DirectoryListProps {
   initialOrganizations: Organization[];
@@ -20,39 +14,20 @@ interface DirectoryListProps {
   externalSearch?: string;
 }
 
-type ScrollView = 'list' | 'carousel';
-
 export function DirectoryList({
   initialOrganizations,
   towns,
   externalSearch = '',
 }: DirectoryListProps) {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const [filters, setFilters] = useState<DirectoryFilters>({});
   const [isLoading] = useState(false);
-  const [scrollView, setScrollView] = useState<ScrollView>('carousel');
   const [filterOpen, setFilterOpen] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const carouselRef = useRef<HTMLDivElement>(null);
-  const touchStartX = useRef<number>(0);
-  const touchEndX = useRef<number>(0);
 
   const activeFilterCount =
     (filters.town ? 1 : 0) +
     (filters.assistanceTypes?.length || 0) +
     (filters.daysOpen?.length || 0);
-
-  useEffect(() => {
-    const savedScroll = localStorage.getItem('scrollView');
-    if (savedScroll === 'list' || savedScroll === 'carousel') {
-      setScrollView(savedScroll);
-    }
-  }, []);
-
-  const toggleScrollView = (view: ScrollView) => {
-    setScrollView(view);
-    localStorage.setItem('scrollView', view);
-  };
 
   const filteredOrganizations = useMemo(() => {
     let result = initialOrganizations;
@@ -100,84 +75,9 @@ export function DirectoryList({
     return result;
   }, [initialOrganizations, externalSearch, filters]);
 
-  const handleScroll = useCallback(() => {
-    if (carouselRef.current && filteredOrganizations.length > 0) {
-      const scrollLeft = carouselRef.current.scrollLeft;
-      const cardWidth = carouselRef.current.offsetWidth;
-      const newIndex = Math.round(scrollLeft / cardWidth);
-      const clampedIndex = Math.max(0, Math.min(newIndex, filteredOrganizations.length - 1));
-      setCurrentIndex(clampedIndex);
-    }
-  }, [filteredOrganizations.length]);
-
-  const goToCard = useCallback((index: number) => {
-    if (carouselRef.current && filteredOrganizations.length > 0) {
-      const cardWidth = carouselRef.current.offsetWidth;
-      let targetIndex = index;
-      if (index < 0) {
-        targetIndex = filteredOrganizations.length - 1;
-      } else if (index >= filteredOrganizations.length) {
-        targetIndex = 0;
-      }
-      carouselRef.current.scrollTo({
-        left: cardWidth * targetIndex,
-        behavior: 'smooth',
-      });
-      setCurrentIndex(targetIndex);
-    }
-  }, [filteredOrganizations.length]);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    const swipeThreshold = 50;
-
-    setTimeout(() => {
-      if (!carouselRef.current || filteredOrganizations.length <= 1) return;
-      const scrollLeft = carouselRef.current.scrollLeft;
-      const cardWidth = carouselRef.current.offsetWidth;
-      const actualIndex = Math.round(scrollLeft / cardWidth);
-      const lastIndex = filteredOrganizations.length - 1;
-
-      if (diff > swipeThreshold && actualIndex >= lastIndex) {
-        goToCard(0);
-      } else if (diff < -swipeThreshold && actualIndex <= 0) {
-        goToCard(lastIndex);
-      }
-    }, 250);
-  };
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (!carouselRef.current || filteredOrganizations.length <= 1) return;
-    const isHorizontalScroll = Math.abs(e.deltaX) > Math.abs(e.deltaY);
-    if (!isHorizontalScroll) return;
-
-    const scrollLeft = carouselRef.current.scrollLeft;
-    const cardWidth = carouselRef.current.offsetWidth;
-    const actualIndex = Math.round(scrollLeft / cardWidth);
-    const lastIndex = filteredOrganizations.length - 1;
-    const maxScroll = cardWidth * lastIndex;
-
-    if (e.deltaX > 20 && actualIndex >= lastIndex && scrollLeft >= maxScroll - 10) {
-      e.preventDefault();
-      goToCard(0);
-    } else if (e.deltaX < -20 && actualIndex <= 0 && scrollLeft <= 10) {
-      e.preventDefault();
-      goToCard(lastIndex);
-    }
-  }, [filteredOrganizations.length, goToCard]);
-
-
   return (
     <div className="space-y-5">
-      {/* Toolbar: filter + view toggle */}
+      {/* Toolbar: filter + language */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -201,31 +101,7 @@ export function DirectoryList({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <LanguageToggle />
-          <div className="flex bg-tag-bg rounded-full p-1">
-            <button
-              onClick={() => toggleScrollView('carousel')}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                scrollView === 'carousel'
-                  ? 'bg-navy text-white shadow-sm'
-                  : 'text-body-text hover:text-navy'
-              }`}
-            >
-              {t('dir.view.card')}
-            </button>
-            <button
-              onClick={() => toggleScrollView('list')}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                scrollView === 'list'
-                  ? 'bg-navy text-white shadow-sm'
-                  : 'text-body-text hover:text-navy'
-              }`}
-            >
-              {t('dir.view.list')}
-            </button>
-          </div>
-        </div>
+        <LanguageToggle />
       </div>
 
       <FilterPanel
@@ -246,56 +122,6 @@ export function DirectoryList({
           <p className="text-navy font-medium text-sm">{t('dir.empty.title')}</p>
           <p className="text-xs text-muted-text mt-1">
             {t('dir.empty.body')}
-          </p>
-        </div>
-      ) : scrollView === 'carousel' ? (
-        <div className="relative">
-          <button
-            onClick={() => goToCard(currentIndex - 1)}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-shadow hidden sm:flex"
-          >
-            <ChevronLeft className="w-5 h-5 text-navy" />
-          </button>
-          <button
-            onClick={() => goToCard(currentIndex + 1)}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-shadow hidden sm:flex"
-          >
-            <ChevronRight className="w-5 h-5 text-navy" />
-          </button>
-
-          <div
-            ref={carouselRef}
-            onScroll={handleScroll}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            onWheel={handleWheel}
-            className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-          >
-            {filteredOrganizations.map((org) => (
-              <div key={org.id} className="flex-shrink-0 w-full snap-center px-1">
-                <OrgCardSimple organization={org} />
-              </div>
-            ))}
-          </div>
-
-          <div className="flex items-center justify-center gap-2 mt-5">
-            {filteredOrganizations.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToCard(index)}
-                className={`transition-all duration-300 rounded-full ${
-                  index === currentIndex
-                    ? 'w-6 h-2 bg-navy'
-                    : 'w-2 h-2 bg-divider hover:bg-muted-text'
-                }`}
-                aria-label={`Go to card ${index + 1}`}
-              />
-            ))}
-          </div>
-
-          <p className="text-center text-xs text-muted-text mt-2 sm:hidden">
-            {locale === 'es' ? 'Desliza para ver más' : 'Swipe to see more'}
           </p>
         </div>
       ) : (
