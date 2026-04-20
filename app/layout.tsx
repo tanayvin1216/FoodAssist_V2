@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { DM_Serif_Display, Inter } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
 import { SettingsProvider } from '@/contexts/SettingsContext';
@@ -41,6 +42,7 @@ export default async function RootLayout({
             <Toaster position="top-right" />
           </SettingsProvider>
         </LocaleProvider>
+        <Analytics />
       </body>
     </html>
   );
