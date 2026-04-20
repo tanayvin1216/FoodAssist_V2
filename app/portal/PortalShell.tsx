@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Building2, LayoutDashboard, Users, LogOut, Menu, Eye } from 'lucide-react';
+import { Building2, LayoutDashboard, Users, LogOut, Menu, Eye, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ const navigation = [
   { name: 'Dashboard', href: '/portal', icon: LayoutDashboard },
   { name: 'Edit Profile', href: '/portal/profile', icon: Building2 },
   { name: 'Volunteer Needs', href: '/portal/volunteers', icon: Users },
+  { name: 'Applications', href: '/portal/volunteer-applications', icon: ClipboardList },
 ];
 
 interface PortalShellProps {
