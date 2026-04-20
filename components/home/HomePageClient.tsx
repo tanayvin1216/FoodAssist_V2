@@ -75,7 +75,7 @@ export function HomePageClient({ organizations, towns }: HomePageClientProps) {
       </div>
 
       {/* Directory */}
-      <div className="max-w-2xl mx-auto px-6 py-10">
+      <div id="food-assist-directory" className="max-w-2xl mx-auto px-6 py-10 scroll-mt-20">
         <DirectoryList
           initialOrganizations={organizations}
           towns={towns}

@@ -78,7 +78,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
     <div className="min-h-screen">
       <div className="container px-6 py-10 max-w-2xl mx-auto">
         <Link
-          href="/"
+          href="/#food-assist-directory"
           className="inline-flex items-center text-sm text-muted-text hover:text-navy mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
