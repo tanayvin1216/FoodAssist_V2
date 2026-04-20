@@ -322,7 +322,10 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
               <Input
                 id="num_meals_available"
                 type="number"
-                {...register('num_meals_available', { valueAsNumber: true })}
+                {...register('num_meals_available', {
+                  setValueAs: (v) =>
+                    v === '' || v === null || v === undefined ? undefined : Number(v),
+                })}
               />
             </div>
           </div>
