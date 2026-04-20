@@ -323,8 +323,11 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
                 id="num_meals_available"
                 type="number"
                 {...register('num_meals_available', {
-                  setValueAs: (v) =>
-                    v === '' || v === null || v === undefined ? undefined : Number(v),
+                  setValueAs: (v) => {
+                    if (v === '' || v === null || v === undefined) return undefined;
+                    const n = Number(v);
+                    return Number.isNaN(n) ? undefined : n;
+                  },
                 })}
               />
             </div>

@@ -66,10 +66,7 @@ export const organizationSchema = z.object({
     .min(1, 'Select at least one assistance type'),
   who_served: z.array(z.enum(SERVED_POPULATIONS as [string, ...string[]])),
   cost: z.enum(['free', 'sliding_scale', 'other']),
-  num_meals_available: z.preprocess(
-    (v) => (v === '' || v === null || (typeof v === 'number' && Number.isNaN(v)) ? undefined : v),
-    z.number().int().nonnegative().optional(),
-  ),
+  num_meals_available: z.number().int().nonnegative().optional(),
   operating_hours: z.array(operatingHoursSchema),
   hours_notes: z.string().max(500).optional(),
   donations_accepted: z.array(z.enum(DONATION_TYPES as [string, ...string[]])),
