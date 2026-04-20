@@ -100,6 +100,39 @@ export interface VolunteerNeed {
   organization?: Organization;
 }
 
+export type VolunteerApplicationStatus = 'pending' | 'approved' | 'rejected' | 'contacted';
+
+export interface VolunteerApplication {
+  id: string;
+  volunteer_need_id?: string | null;
+  organization_id?: string | null;
+  applicant_name: string;
+  applicant_email: string;
+  applicant_phone?: string | null;
+  willing_to_do: string;
+  hours_per_week?: string | null;
+  availability?: string | null;
+  status: VolunteerApplicationStatus;
+  review_notes?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  created_at: string;
+  organization?: Organization;
+  volunteer_need?: VolunteerNeed;
+}
+
+export type VolunteerApplicationFormData = Pick<
+  VolunteerApplication,
+  | 'volunteer_need_id'
+  | 'organization_id'
+  | 'applicant_name'
+  | 'applicant_email'
+  | 'applicant_phone'
+  | 'willing_to_do'
+  | 'hours_per_week'
+  | 'availability'
+>;
+
 export interface Profile {
   id: string;
   email: string;

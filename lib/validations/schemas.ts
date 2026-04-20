@@ -104,6 +104,30 @@ export const volunteerNeedSchema = z.object({
   contact_email: z.string().email('Invalid email').optional().or(z.literal('')),
 });
 
+// Volunteer application schema — public form submission.
+// Either volunteer_need_id or organization_id should be set when
+// submitted through a need-specific CTA; both can be empty for a
+// general application routed to the advisor.
+export const volunteerApplicationSchema = z.object({
+  volunteer_need_id: z.string().uuid().optional().or(z.literal('')).nullable(),
+  organization_id: z.string().uuid().optional().or(z.literal('')).nullable(),
+  applicant_name: z.string().min(1, 'Name is required').max(100),
+  applicant_email: z.string().email('Valid email is required').max(200),
+  applicant_phone: z.string().max(60).optional().or(z.literal('')),
+  willing_to_do: z
+    .string()
+    .min(5, 'Tell us a bit about what you would like to help with')
+    .max(2000),
+  hours_per_week: z.string().max(100).optional().or(z.literal('')),
+  availability: z.string().max(500).optional().or(z.literal('')),
+});
+
+export const volunteerApplicationReviewSchema = z.object({
+  id: z.string().uuid(),
+  status: z.enum(['pending', 'approved', 'rejected', 'contacted']),
+  review_notes: z.string().max(2000).optional().or(z.literal('')),
+});
+
 // User profile schema
 export const profileSchema = z.object({
   email: z.string().email('Invalid email address'),
