@@ -43,7 +43,7 @@ export function formatTime(time: string): string {
  * Get a summary of operating hours
  */
 export function formatOperatingHours(hours: OperatingHours[]): string {
-  if (!hours || hours.length === 0) return 'Hours not available';
+  if (!Array.isArray(hours) || hours.length === 0) return 'Hours not available';
 
   const openDays = hours.filter((h) => !h.is_closed);
   if (openDays.length === 0) return 'Closed';
@@ -74,7 +74,7 @@ export function formatOperatingHours(hours: OperatingHours[]): string {
  * Get short hours summary for cards
  */
 export function getShortHoursSummary(hours: OperatingHours[]): string {
-  if (!hours || hours.length === 0) return 'Hours not available';
+  if (!Array.isArray(hours) || hours.length === 0) return 'Hours not available';
 
   const openDays = hours.filter((h) => !h.is_closed);
   if (openDays.length === 0) return 'Closed';
@@ -104,7 +104,8 @@ export function getShortHoursSummary(hours: OperatingHours[]): string {
  * Check if organization is open on a specific day
  */
 export function isOpenOnDay(hours: OperatingHours[], day: DayOfWeek): boolean {
-  const dayHours = hours?.find((h) => h.day === day);
+  if (!Array.isArray(hours)) return false;
+  const dayHours = hours.find((h) => h.day === day);
   return dayHours ? !dayHours.is_closed : false;
 }
 
@@ -112,8 +113,9 @@ export function isOpenOnDay(hours: OperatingHours[], day: DayOfWeek): boolean {
  * Get today's operating hours
  */
 export function getTodayHours(hours: OperatingHours[]): string {
+  if (!Array.isArray(hours)) return 'Closed today';
   const today = DAYS_OF_WEEK[new Date().getDay() === 0 ? 6 : new Date().getDay() - 1];
-  const todayHours = hours?.find((h) => h.day === today);
+  const todayHours = hours.find((h) => h.day === today);
 
   if (!todayHours || todayHours.is_closed) {
     return 'Closed today';
@@ -156,7 +158,7 @@ export function getDirectionsUrl(address: string, town: string, zip: string): st
  * Check if organization is currently open
  */
 export function isOpenNow(hours: OperatingHours[]): boolean {
-  if (!hours || hours.length === 0) return false;
+  if (!Array.isArray(hours) || hours.length === 0) return false;
 
   const now = new Date();
   const dayIndex = now.getDay();

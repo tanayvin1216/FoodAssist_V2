@@ -40,8 +40,11 @@ interface OrgFormProps {
 }
 
 export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
+  const existingHours = Array.isArray(organization?.operating_hours)
+    ? organization.operating_hours
+    : [];
   const defaultOperatingHours = DAYS_OF_WEEK.map((day) => {
-    const existing = organization?.operating_hours?.find((h) => h.day === day);
+    const existing = existingHours.find((h) => h.day === day);
     return (
       existing || {
         day,

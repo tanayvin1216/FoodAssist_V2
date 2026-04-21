@@ -61,10 +61,9 @@ export async function getOrganizations(
 
   if (filters?.daysOpen && filters.daysOpen.length > 0) {
     organizations = organizations.filter((org) => {
-      const openDays = org.operating_hours
-        ?.filter((h) => !h.is_closed)
-        .map((h) => h.day);
-      return filters.daysOpen!.some((day) => openDays?.includes(day));
+      const hours = Array.isArray(org.operating_hours) ? org.operating_hours : [];
+      const openDays = hours.filter((h) => !h.is_closed).map((h) => h.day);
+      return filters.daysOpen!.some((day) => openDays.includes(day));
     });
   }
 
