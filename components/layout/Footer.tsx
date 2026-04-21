@@ -84,6 +84,18 @@ export function Footer() {
             </Link>
           </div>
         </div>
+
+        <div className="mt-6 text-center text-xs text-white/30">
+          Developed by{' '}
+          <a
+            href="https://tanayvin.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white transition-colors"
+          >
+            Tanay Vinaykya
+          </a>
+        </div>
       </div>
     </footer>
   );
