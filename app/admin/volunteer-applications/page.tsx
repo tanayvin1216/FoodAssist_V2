@@ -19,6 +19,7 @@ export default async function AdminVolunteerApplicationsPage() {
     supabase
       .from('organizations')
       .select('id, name')
+      .eq('sector', 'food_insecurity')
       .order('name', { ascending: true }),
   ]);
 

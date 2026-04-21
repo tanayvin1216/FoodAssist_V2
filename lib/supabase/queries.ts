@@ -14,6 +14,12 @@ import { SiteSettings } from '@/types/settings';
 import { defaultSettings } from '@/config/default-settings';
 import { SettingsPatch } from '@/lib/validations/schemas';
 
+// FoodAssist shares the organizations table with a sister app
+// (carteret-assist-hub). Every read and write in this file scopes to
+// the food_insecurity sector so only FoodAssist's own rows are visible
+// and any new rows we create are tagged correctly.
+export const FOODASSIST_SECTOR = 'food_insecurity';
+
 // ============== Organizations ==============
 
 export async function getOrganizations(
@@ -24,6 +30,7 @@ export async function getOrganizations(
   let query = supabase
     .from('organizations')
     .select('*')
+    .eq('sector', FOODASSIST_SECTOR)
     .order('name');
 
   if (activeOnly) {
@@ -78,6 +85,7 @@ export async function getOrganizationById(
     .from('organizations')
     .select('*')
     .eq('id', id)
+    .eq('sector', FOODASSIST_SECTOR)
     .single();
 
   if (error) {
@@ -94,7 +102,7 @@ export async function createOrganization(
 ): Promise<Organization> {
   const { data: org, error } = await supabase
     .from('organizations')
-    .insert(data)
+    .insert({ ...data, sector: FOODASSIST_SECTOR })
     .select()
     .single();
 
@@ -111,6 +119,7 @@ export async function updateOrganization(
     .from('organizations')
     .update({ ...data, last_updated: new Date().toISOString() })
     .eq('id', id)
+    .eq('sector', FOODASSIST_SECTOR)
     .select()
     .single();
 
@@ -122,7 +131,11 @@ export async function deleteOrganization(
   supabase: SupabaseClient,
   id: string
 ): Promise<void> {
-  const { error } = await supabase.from('organizations').delete().eq('id', id);
+  const { error } = await supabase
+    .from('organizations')
+    .delete()
+    .eq('id', id)
+    .eq('sector', FOODASSIST_SECTOR);
   if (error) throw error;
 }
 
@@ -283,7 +296,10 @@ export async function updateProfile(
 
 export async function getAdminStats(supabase: SupabaseClient) {
   const [orgs, donations, volunteers, profiles] = await Promise.all([
-    supabase.from('organizations').select('id, is_active', { count: 'exact' }),
+    supabase
+      .from('organizations')
+      .select('id, is_active', { count: 'exact' })
+      .eq('sector', FOODASSIST_SECTOR),
     supabase.from('council_donations').select('amount'),
     supabase.from('volunteer_needs').select('id, is_active', { count: 'exact' }),
     supabase.from('profiles').select('id', { count: 'exact' }),
@@ -327,6 +343,7 @@ export async function getDashboardSnapshot(
   const { data, error } = await supabase
     .from('organizations')
     .select('id, name, town, last_updated, assistance_types')
+    .eq('sector', FOODASSIST_SECTOR)
     .eq('is_active', true);
 
   if (error) throw error;
@@ -369,6 +386,7 @@ export async function getUniqueTowns(
   const { data, error } = await supabase
     .from('organizations')
     .select('town')
+    .eq('sector', FOODASSIST_SECTOR)
     .eq('is_active', true);
 
   if (error) throw error;
