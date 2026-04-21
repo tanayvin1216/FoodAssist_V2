@@ -85,15 +85,15 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 text-center text-xs text-white/30">
-          Developed by{' '}
+        <div className="mt-6 text-center text-sm text-white/60">
+          Developed By <span className="text-white/90">Tanay Vinaykya</span> :{' '}
           <a
             href="https://tanayvin.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-white transition-colors"
+            className="text-white font-medium underline underline-offset-4 decoration-white/30 hover:decoration-white transition-colors"
           >
-            Tanay Vinaykya
+            tanayvin.com
           </a>
         </div>
       </div>
