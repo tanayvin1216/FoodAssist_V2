@@ -484,3 +484,113 @@ export async function updateSiteSettings(
 
   return rowToSettings(data as SiteSettingsRow);
 }
+
+// ============== Page View Analytics ==============
+
+export interface PageViewRow {
+  path: string;
+  session_id: string;
+  created_at: string;
+}
+
+export interface AnalyticsSummary {
+  totalViewsLast30d: number;
+  uniqueSessionsLast30d: number;
+  totalViewsLast7d: number;
+  uniqueSessionsLast7d: number;
+  topPages: Array<{ path: string; views: number }>;
+  dailyViews: Array<{ date: string; views: number; sessions: number }>;
+  recentReferrers: Array<{ referrer: string; views: number }>;
+}
+
+export async function getAnalyticsSummary(
+  supabase: SupabaseClient
+): Promise<AnalyticsSummary> {
+  const now = Date.now();
+  const since30dIso = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const since7dIso = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const since14dIso = new Date(now - 14 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data: rows30d, error } = await supabase
+    .from('page_views')
+    .select('path, session_id, created_at')
+    .gte('created_at', since30dIso)
+    .order('created_at', { ascending: false })
+    .limit(50000);
+
+  if (error) throw error;
+  const views = (rows30d ?? []) as PageViewRow[];
+
+  const sessionsLast30d = new Set<string>();
+  const sessionsLast7d = new Set<string>();
+  const pageCounts = new Map<string, number>();
+  let viewsLast7d = 0;
+
+  for (const view of views) {
+    sessionsLast30d.add(view.session_id);
+    pageCounts.set(view.path, (pageCounts.get(view.path) ?? 0) + 1);
+    if (view.created_at >= since7dIso) {
+      viewsLast7d += 1;
+      sessionsLast7d.add(view.session_id);
+    }
+  }
+
+  const topPages = [...pageCounts.entries()]
+    .map(([path, viewCount]) => ({ path, views: viewCount }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 10);
+
+  const dailyBuckets = new Map<string, { views: number; sessions: Set<string> }>();
+  for (let dayOffset = 13; dayOffset >= 0; dayOffset -= 1) {
+    const day = new Date(now - dayOffset * 24 * 60 * 60 * 1000);
+    const key = day.toISOString().slice(0, 10);
+    dailyBuckets.set(key, { views: 0, sessions: new Set() });
+  }
+  for (const view of views) {
+    if (view.created_at < since14dIso) continue;
+    const dayKey = view.created_at.slice(0, 10);
+    const bucket = dailyBuckets.get(dayKey);
+    if (!bucket) continue;
+    bucket.views += 1;
+    bucket.sessions.add(view.session_id);
+  }
+  const dailyViews = [...dailyBuckets.entries()].map(([date, bucket]) => ({
+    date,
+    views: bucket.views,
+    sessions: bucket.sessions.size,
+  }));
+
+  const { data: referrerRows } = await supabase
+    .from('page_views')
+    .select('referrer')
+    .gte('created_at', since30dIso)
+    .not('referrer', 'is', null)
+    .limit(10000);
+
+  const referrerCounts = new Map<string, number>();
+  for (const row of (referrerRows ?? []) as Array<{ referrer: string | null }>) {
+    if (!row.referrer) continue;
+    let host = row.referrer;
+    try {
+      host = new URL(row.referrer).hostname || row.referrer;
+    } catch {
+      // Keep raw string if not parseable.
+    }
+    if (!host) continue;
+    referrerCounts.set(host, (referrerCounts.get(host) ?? 0) + 1);
+  }
+  const recentReferrers = [...referrerCounts.entries()]
+    .map(([referrer, viewCount]) => ({ referrer, views: viewCount }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 8);
+
+  return {
+    totalViewsLast30d: views.length,
+    uniqueSessionsLast30d: sessionsLast30d.size,
+    totalViewsLast7d: viewsLast7d,
+    uniqueSessionsLast7d: sessionsLast7d.size,
+    topPages,
+    dailyViews,
+    recentReferrers,
+  };
+}
