@@ -39,20 +39,53 @@ interface OrgFormProps {
   isLoading?: boolean;
 }
 
+// Normalize legacy/import time formats into HH:MM that <input type="time"> accepts.
+// Existing rows can carry "09:00:00" (Postgres time literal), "9:00", "9:00 AM",
+// or empty strings — all of which break the form on edit.
+function normalizeTimeValue(raw: unknown): string | undefined {
+  if (raw === null || raw === undefined) return undefined;
+  const s = String(raw).trim();
+  if (!s) return undefined;
+  const ampm = s.match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/i);
+  if (ampm) {
+    let hh = parseInt(ampm[1], 10);
+    const mm = ampm[2];
+    const meridiem = ampm[3].toLowerCase();
+    if (meridiem === 'pm' && hh < 12) hh += 12;
+    if (meridiem === 'am' && hh === 12) hh = 0;
+    return `${String(hh).padStart(2, '0')}:${mm}`;
+  }
+  const hhmm = s.match(/^(\d{1,2}):(\d{2})/);
+  if (!hhmm) return undefined;
+  const hh = String(parseInt(hhmm[1], 10)).padStart(2, '0');
+  return `${hh}:${hhmm[2]}`;
+}
+
 export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
   const existingHours = Array.isArray(organization?.operating_hours)
     ? organization.operating_hours
     : [];
   const defaultOperatingHours = DAYS_OF_WEEK.map((day) => {
     const existing = existingHours.find((h) => h.day === day);
-    return (
-      existing || {
+    if (existing) {
+      const open = normalizeTimeValue(existing.open_time);
+      const close = normalizeTimeValue(existing.close_time);
+      // If the row claims it's open but stored times are missing/malformed,
+      // fall back to defaults so the user can simply correct them in place.
+      const isClosed = existing.is_closed || (!open && !close);
+      return {
         day,
-        open_time: '09:00',
-        close_time: '17:00',
-        is_closed: day === 'saturday' || day === 'sunday',
-      }
-    );
+        open_time: open ?? (isClosed ? undefined : '09:00'),
+        close_time: close ?? (isClosed ? undefined : '17:00'),
+        is_closed: isClosed,
+      };
+    }
+    return {
+      day,
+      open_time: '09:00',
+      close_time: '17:00',
+      is_closed: day === 'saturday' || day === 'sunday',
+    };
   });
 
   const {
@@ -384,6 +417,12 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
                       {...register(`operating_hours.${index}.close_time`)}
                     />
                   </div>
+                )}
+                {errors.operating_hours?.[index] && (
+                  <p className="text-sm text-red-600 w-full">
+                    {errors.operating_hours[index]?.message ||
+                      errors.operating_hours[index]?.root?.message}
+                  </p>
                 )}
               </div>
             ))}

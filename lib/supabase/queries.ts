@@ -188,9 +188,13 @@ export async function getVolunteerNeeds(
   organizationId?: string,
   activeOnly: boolean = true
 ): Promise<VolunteerNeed[]> {
+  // !inner forces an INNER JOIN so the sector filter on the embedded
+  // organizations row excludes needs whose org belongs to a sister app.
+  // Without this, volunteer_needs leaks across sector boundaries.
   let query = supabase
     .from('volunteer_needs')
-    .select('*, organization:organizations(id, name)')
+    .select('*, organization:organizations!inner(id, name, sector)')
+    .eq('organization.sector', FOODASSIST_SECTOR)
     .order('posted_date', { ascending: false });
 
   if (organizationId) {
@@ -301,7 +305,10 @@ export async function getAdminStats(supabase: SupabaseClient) {
       .select('id, is_active', { count: 'exact' })
       .eq('sector', FOODASSIST_SECTOR),
     supabase.from('council_donations').select('amount'),
-    supabase.from('volunteer_needs').select('id, is_active', { count: 'exact' }),
+    supabase
+      .from('volunteer_needs')
+      .select('id, is_active, organizations!inner(sector)', { count: 'exact' })
+      .eq('organizations.sector', FOODASSIST_SECTOR),
     supabase.from('profiles').select('id', { count: 'exact' }),
   ]);
 

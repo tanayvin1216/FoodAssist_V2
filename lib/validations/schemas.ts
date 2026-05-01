@@ -21,20 +21,31 @@ const zipSchema = z.string().max(20).optional().or(z.literal(''));
 // passes; the UI/import layer normalizes (adds https://) before save.
 const urlSchema = z.string().max(500).optional().or(z.literal(''));
 
-// Operating hours schema
+// Operating hours schema. HH:MM strings only (HTML <input type="time"> output).
+// Two separate refines so the user sees an accurate message: "missing" vs "invalid range".
+const TIME_PATTERN = /^\d{2}:\d{2}$/;
 export const operatingHoursSchema = z.object({
   day: z.enum(DAYS_OF_WEEK as [string, ...string[]]),
   open_time: z.string().optional(),
   close_time: z.string().optional(),
   is_closed: z.boolean(),
-}).refine(
-  (data) => {
-    if (data.is_closed) return true;
-    if (!data.open_time || !data.close_time) return false;
-    return data.open_time < data.close_time;
-  },
-  { message: 'Opening time must be before closing time' }
-);
+})
+  .refine(
+    (data) => {
+      if (data.is_closed) return true;
+      if (!data.open_time || !data.close_time) return false;
+      return TIME_PATTERN.test(data.open_time) && TIME_PATTERN.test(data.close_time);
+    },
+    { message: 'Enter both opening and closing times, or check Closed' }
+  )
+  .refine(
+    (data) => {
+      if (data.is_closed) return true;
+      if (!data.open_time || !data.close_time) return true; // covered by previous refine
+      return data.open_time < data.close_time;
+    },
+    { message: 'Opening time must be before closing time' }
+  );
 
 // Storage capacity schema
 export const storageCapacitySchema = z.object({
