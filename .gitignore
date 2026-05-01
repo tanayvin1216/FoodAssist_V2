@@ -45,6 +45,7 @@ next-env.d.ts
 .claude/
 .claude*
 CLAUDE.md
+.mcp.json
 
 # Supabase CLI local state
 supabase/.temp/
@@ -52,3 +53,17 @@ supabase/.temp/
 # IDE
 .idea/
 .vscode/
+
+# Internal working docs (kept locally, not pushed)
+LEARNINGS.md
+PLAN.md
+WIP.md
+food-assistance-demo-spec.md
+docs/backend-integration/
+
+# Next.js scaffolding leftovers (unused)
+public/file.svg
+public/globe.svg
+public/next.svg
+public/vercel.svg
+public/window.svg
