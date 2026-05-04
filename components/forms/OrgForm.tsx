@@ -583,15 +583,25 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
               name="is_active"
               control={control}
               render={({ field }) => (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="active"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                  <Label htmlFor="active" className="font-normal">
-                    Listing is active (visible in directory)
-                  </Label>
+                <div className="rounded-md border border-shoreline bg-sand/40 p-3">
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="active"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="mt-0.5"
+                    />
+                    <div className="space-y-1">
+                      <Label htmlFor="active" className="font-medium">
+                        Show this listing on the public directory
+                      </Label>
+                      <p className="text-xs text-driftwood">
+                        Uncheck to hide it from visitors. The listing stays in your
+                        admin list and you can edit or re-show it any time from the
+                        Organizations page.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             />

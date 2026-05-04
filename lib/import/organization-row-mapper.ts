@@ -61,6 +61,11 @@ const COLUMN_ALIASES: Record<string, string[]> = {
 };
 
 const ASSISTANCE_VALUE_ALIASES: Record<string, AssistanceType> = {
+  hot_meals_eat_in: 'hot_meals_eat_in',
+  hot_meals_eatin: 'hot_meals_eat_in',
+  'hot_meals_(eat_in)': 'hot_meals_eat_in',
+  eat_in: 'hot_meals_eat_in',
+  dine_in: 'hot_meals_eat_in',
   hot_meals_pickup: 'hot_meals_pickup',
   hot_meals_pick_up: 'hot_meals_pickup',
   'hot_meals_(pickup)': 'hot_meals_pickup',

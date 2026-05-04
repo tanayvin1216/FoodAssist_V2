@@ -100,6 +100,7 @@ export type MessageKey =
   | 'day.sunday'
   // Assistance type labels (user-facing)
   | 'assistance.collection'
+  | 'assistance.hot_meals_eat_in'
   | 'assistance.hot_meals_pickup'
   | 'assistance.hot_meals_delivery'
   | 'assistance.staffed_pantry'
@@ -199,6 +200,7 @@ export const dictionary: Record<Locale, MessageCatalog> = {
     'day.sunday': 'Sunday',
 
     'assistance.collection': 'Food collection site',
+    'assistance.hot_meals_eat_in': 'Hot meals (eat in)',
     'assistance.hot_meals_pickup': 'Hot meals (pickup)',
     'assistance.hot_meals_delivery': 'Hot meals (delivery)',
     'assistance.staffed_pantry': 'Staffed food pantry',
@@ -298,6 +300,7 @@ export const dictionary: Record<Locale, MessageCatalog> = {
     'day.sunday': 'Domingo',
 
     'assistance.collection': 'Sitio de recolección de alimentos',
+    'assistance.hot_meals_eat_in': 'Comidas calientes (comer aquí)',
     'assistance.hot_meals_pickup': 'Comidas calientes (recoger)',
     'assistance.hot_meals_delivery': 'Comidas calientes (entrega)',
     'assistance.staffed_pantry': 'Despensa de alimentos con personal',

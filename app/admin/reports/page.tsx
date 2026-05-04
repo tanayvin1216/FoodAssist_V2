@@ -19,6 +19,7 @@ export const metadata = { title: 'Reports — FoodAssist Admin' };
 
 const ASSISTANCE_LABELS: Record<AssistanceType, string> = {
   collection: 'Collection / Drive',
+  hot_meals_eat_in: 'Hot Meals (Eat In)',
   hot_meals_pickup: 'Hot Meals (Pickup)',
   hot_meals_delivery: 'Hot Meals (Delivery)',
   staffed_pantry: 'Staffed Pantry',

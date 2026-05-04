@@ -9,6 +9,7 @@ import {
 
 export const ASSISTANCE_TYPE_LABELS: Record<AssistanceType, string> = {
   collection: 'Food Collection Site',
+  hot_meals_eat_in: 'Hot Meals (Eat In)',
   hot_meals_pickup: 'Hot Meals (Pickup)',
   hot_meals_delivery: 'Hot Meals (Delivery)',
   staffed_pantry: 'Staffed Food Pantry',
@@ -76,6 +77,7 @@ export const DAYS_OF_WEEK: DayOfWeek[] = [
 
 export const ASSISTANCE_TYPES: AssistanceType[] = [
   'collection',
+  'hot_meals_eat_in',
   'hot_meals_pickup',
   'hot_meals_delivery',
   'staffed_pantry',

@@ -338,6 +338,7 @@ export interface DashboardSnapshot {
 
 const ZERO_ASSISTANCE_COUNTS: Record<AssistanceType, number> = {
   collection: 0,
+  hot_meals_eat_in: 0,
   hot_meals_pickup: 0,
   hot_meals_delivery: 0,
   staffed_pantry: 0,

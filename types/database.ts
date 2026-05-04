@@ -2,6 +2,7 @@
 
 export type AssistanceType =
   | 'collection'
+  | 'hot_meals_eat_in'
   | 'hot_meals_pickup'
   | 'hot_meals_delivery'
   | 'staffed_pantry'
