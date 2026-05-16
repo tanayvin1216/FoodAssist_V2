@@ -74,7 +74,9 @@ function buildDefaultValues(need?: VolunteerNeed): VolunteerNeedFormValues {
     needed_skills: need?.needed_skills ?? [],
     time_commitment: need?.time_commitment ?? '',
     is_active: need?.is_active ?? true,
+    contact_name: need?.contact_name ?? '',
     contact_email: need?.contact_email ?? '',
+    contact_phone: need?.contact_phone ?? '',
   };
 }
 
@@ -502,17 +504,47 @@ function VolunteerNeedForm({
 
         <FormField
           control={form.control}
-          name="contact_email"
+          name="contact_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact Email</FormLabel>
+              <FormLabel>Contact Name</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="volunteer@example.org" {...field} value={field.value ?? ''} />
+                <Input placeholder="e.g. Jane Doe, Volunteer Coordinator" {...field} value={field.value ?? ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="contact_email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="volunteer@example.org" {...field} value={field.value ?? ''} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="contact_phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contact Phone</FormLabel>
+                <FormControl>
+                  <Input type="tel" placeholder="(252) 555-0100" {...field} value={field.value ?? ''} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}

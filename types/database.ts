@@ -97,7 +97,9 @@ export interface VolunteerNeed {
   time_commitment?: string;
   is_active: boolean;
   posted_date: string;
+  contact_name?: string;
   contact_email?: string;
+  contact_phone?: string;
   organization?: Organization;
 }
 

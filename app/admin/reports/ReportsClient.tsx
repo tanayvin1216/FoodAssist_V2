@@ -209,7 +209,9 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
       'Description',
       'Date Needed',
       'Time Commitment',
+      'Contact Name',
       'Contact Email',
+      'Contact Phone',
       'Status',
     ];
     const rows = needs.map((v) => [
@@ -218,7 +220,9 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
       v.description,
       v.needed_date ?? '',
       v.time_commitment ?? '',
+      v.contact_name ?? '',
       v.contact_email ?? '',
+      v.contact_phone ?? '',
       v.is_active ? 'Active' : 'Inactive',
     ]);
     downloadCsv([headers, ...rows], `volunteer-needs-${new Date().toISOString().split('T')[0]}.csv`);

@@ -5,7 +5,7 @@
  * Empty-state (zero needs) is rendered inline below.
  */
 import Link from 'next/link';
-import { Users, Clock, Mail, Calendar, ArrowRight } from 'lucide-react';
+import { Users, Clock, Mail, Phone, User, Calendar, ArrowRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { getVolunteerNeeds } from '@/lib/supabase/queries';
 import { Organization } from '@/types/database';
@@ -101,6 +101,12 @@ export default async function VolunteersPage() {
                           <span>{need.time_commitment}</span>
                         </div>
                       )}
+                      {need.contact_name && (
+                        <div className="flex items-center gap-1.5">
+                          <User className="w-3.5 h-3.5 text-muted-text" />
+                          <span>{need.contact_name}</span>
+                        </div>
+                      )}
                       {need.contact_email && (
                         <div className="flex items-center gap-1.5">
                           <Mail className="w-3.5 h-3.5 text-muted-text" />
@@ -109,6 +115,17 @@ export default async function VolunteersPage() {
                             className="hover:text-navy transition-colors"
                           >
                             {need.contact_email}
+                          </a>
+                        </div>
+                      )}
+                      {need.contact_phone && (
+                        <div className="flex items-center gap-1.5">
+                          <Phone className="w-3.5 h-3.5 text-muted-text" />
+                          <a
+                            href={`tel:${need.contact_phone}`}
+                            className="hover:text-navy transition-colors"
+                          >
+                            {need.contact_phone}
                           </a>
                         </div>
                       )}

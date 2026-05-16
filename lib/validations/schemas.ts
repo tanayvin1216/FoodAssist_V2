@@ -109,7 +109,9 @@ export const volunteerNeedSchema = z.object({
   needed_skills: z.array(z.string()).optional(),
   time_commitment: z.string().max(200).optional(),
   is_active: z.boolean(),
+  contact_name: z.string().max(100).optional().or(z.literal('')),
   contact_email: z.string().email('Invalid email').optional().or(z.literal('')),
+  contact_phone: z.string().max(60).optional().or(z.literal('')),
 });
 
 // Volunteer application schema — public form submission.
