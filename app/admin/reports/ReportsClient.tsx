@@ -62,6 +62,9 @@ export interface ReportsData {
   summaryTownsCovered: number;
   summaryDonationsYtd: number;
   summaryVolunteerPosts: number;
+  siteName: string;
+  siteTagline: string;
+  categoryLabels: Record<string, string>;
 }
 
 // ---- CSV helpers ----
@@ -129,6 +132,7 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 
 export default function ReportsClient({ data }: { data: ReportsData }) {
   const [includeInactive, setIncludeInactive] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const {
     allOrganizations,
@@ -143,6 +147,9 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
     summaryTownsCovered,
     summaryDonationsYtd,
     summaryVolunteerPosts,
+    siteName,
+    siteTagline,
+    categoryLabels,
   } = data;
 
   const maxTownCount = Math.max(...orgsByTown.map((t) => t.totalCount), 1);
@@ -197,6 +204,45 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
     ]);
     downloadCsv([headers, ...rows], `donations-${new Date().toISOString().split('T')[0]}.csv`);
     toast.success('Donations CSV downloaded');
+  }
+
+  async function handleDownloadPdf() {
+    setIsGeneratingPdf(true);
+    try {
+      // Dynamic-import the PDF deps so the heavy react-pdf bundle never lands
+      // on the Reports page's initial download.
+      const [{ pdf }, { DirectoryPdfDocument }] = await Promise.all([
+        import('@react-pdf/renderer'),
+        import('@/components/admin/DirectoryPdfDocument'),
+      ]);
+      const activeOrgs = allOrganizations.filter((o) => o.is_active);
+      const generatedAt = new Date().toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      });
+      const blob = await pdf(
+        <DirectoryPdfDocument
+          title={`${siteName} Directory`}
+          subtitle={siteTagline}
+          generatedAt={generatedAt}
+          organizations={activeOrgs}
+          categoryLabels={categoryLabels}
+        />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `food-assistance-directory-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Directory PDF downloaded');
+    } catch (error) {
+      console.error('[reports] PDF generation failed:', error);
+      toast.error('Could not generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   }
 
   function handleExportVolunteers() {
@@ -446,7 +492,7 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
         </div>
       </section>
 
-      {/* PDF export — coming soon */}
+      {/* PDF export */}
       <section>
         <h2 className="text-xs uppercase tracking-wider mb-3" style={{ color: '#8C7E72' }}>
           PDF Report
@@ -455,24 +501,26 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
           className="rounded-lg border px-5 py-5 flex items-start gap-4"
           style={{ borderColor: '#C4B8AD', backgroundColor: '#FFFFFF' }}
         >
-          <FileText className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#8C7E72' }} />
+          <FileText className="w-5 h-5 mt-0.5 shrink-0" style={{ color: '#0D7C8F' }} />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium" style={{ color: '#1B2D3A' }}>
               Formatted PDF Directory
             </p>
             <p className="text-sm mt-1" style={{ color: '#8C7E72' }}>
-              Print-ready PDF with all organizations grouped by town or service type. Requires a
-              server-side rendering library — not yet configured.
+              Print-ready PDF of every active organization, grouped by town. Includes name,
+              address, phone, email, assistance types, and an at-a-glance hours summary.
             </p>
           </div>
           <Button
-            disabled
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
             variant="outline"
             size="sm"
-            className="shrink-0 text-xs"
-            style={{ borderColor: '#C4B8AD', color: '#8C7E72' }}
+            className="shrink-0 text-xs gap-1.5"
+            style={{ borderColor: '#0D7C8F', color: '#0D7C8F' }}
           >
-            Coming soon
+            <Download className="w-3 h-3" />
+            {isGeneratingPdf ? 'Generating…' : 'Download PDF'}
           </Button>
         </div>
       </section>

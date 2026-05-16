@@ -532,6 +532,14 @@ export interface AnalyticsSummary {
   recentReferrers: Array<{ referrer: string; views: number }>;
 }
 
+function buildEmptyDailyBuckets(now: number) {
+  return Array.from({ length: 14 }, (_, idx) => {
+    const dayOffset = 13 - idx;
+    const day = new Date(now - dayOffset * 24 * 60 * 60 * 1000);
+    return { date: day.toISOString().slice(0, 10), views: 0, sessions: 0 };
+  });
+}
+
 export async function getAnalyticsSummary(
   supabase: SupabaseClient
 ): Promise<AnalyticsSummary> {
@@ -547,7 +555,21 @@ export async function getAnalyticsSummary(
     .order('created_at', { ascending: false })
     .limit(50000);
 
-  if (error) throw error;
+  // If the analytics table is missing or RLS hides every row, fall through to
+  // a "no data" summary rather than crashing the dashboard. The page renders
+  // friendly empty states for each section in that case.
+  if (error) {
+    console.error('[analytics] page_views query failed:', error.message);
+    return {
+      totalViewsLast30d: 0,
+      uniqueSessionsLast30d: 0,
+      totalViewsLast7d: 0,
+      uniqueSessionsLast7d: 0,
+      topPages: [],
+      dailyViews: buildEmptyDailyBuckets(now),
+      recentReferrers: [],
+    };
+  }
   const views = (rows30d ?? []) as PageViewRow[];
 
   const sessionsLast30d = new Set<string>();

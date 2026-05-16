@@ -4,6 +4,7 @@ import {
   getOrganizations,
   getCouncilDonations,
   getVolunteerNeeds,
+  getSiteSettings,
 } from '@/lib/supabase/queries';
 import ReportsClient, {
   type OrgsByTown,
@@ -13,29 +14,23 @@ import ReportsClient, {
   type VolunteersByOrg,
   type ReportsData,
 } from './ReportsClient';
-import type { AssistanceType } from '@/types/database';
+import { buildCategoryLabelMap } from '@/lib/utils/category-labels';
 
 export const metadata = { title: 'Reports — FoodAssist Admin' };
-
-const ASSISTANCE_LABELS: Record<AssistanceType, string> = {
-  collection: 'Collection / Drive',
-  hot_meals_eat_in: 'Hot Meals (Eat In)',
-  hot_meals_pickup: 'Hot Meals (Pickup)',
-  hot_meals_delivery: 'Hot Meals (Delivery)',
-  staffed_pantry: 'Staffed Pantry',
-  self_serve_pantry: 'Self-Serve Pantry',
-};
 
 export default async function AdminReportsPage() {
   await requireAdmin();
 
   const supabase = await createClient();
 
-  const [allOrganizations, allDonations, allVolunteerNeeds] = await Promise.all([
-    getOrganizations(supabase, undefined, false),
-    getCouncilDonations(supabase),
-    getVolunteerNeeds(supabase, undefined, false),
-  ]);
+  const [allOrganizations, allDonations, allVolunteerNeeds, settings] =
+    await Promise.all([
+      getOrganizations(supabase, undefined, false),
+      getCouncilDonations(supabase),
+      getVolunteerNeeds(supabase, undefined, false),
+      getSiteSettings(supabase),
+    ]);
+  const categoryLabels = buildCategoryLabelMap(settings.categories);
 
   // ---- Orgs by town ----
   const townMap = new Map<string, { active: number; total: number }>();
@@ -51,19 +46,22 @@ export default async function AdminReportsPage() {
     .sort((a, b) => b.totalCount - a.totalCount);
 
   // ---- Orgs by assistance type ----
-  const typeMap = new Map<AssistanceType, number>();
+  // Pull the active type list from the admin-managed catalog so admin-added
+  // types show up here automatically.
+  const typeMap = new Map<string, number>();
   for (const org of allOrganizations.filter((o) => o.is_active)) {
     for (const t of org.assistance_types ?? []) {
       typeMap.set(t, (typeMap.get(t) ?? 0) + 1);
     }
   }
-  const orgsByType: OrgsByType[] = (Object.keys(ASSISTANCE_LABELS) as AssistanceType[]).map(
-    (type) => ({
-      type,
-      label: ASSISTANCE_LABELS[type],
-      count: typeMap.get(type) ?? 0,
-    })
-  );
+  const orgsByType: OrgsByType[] = settings.categories.assistanceTypes
+    .filter((c) => c.isActive)
+    .sort((a, b) => a.order - b.order)
+    .map((c) => ({
+      type: c.slug,
+      label: c.label,
+      count: typeMap.get(c.slug) ?? 0,
+    }));
 
   // ---- Donations by month ----
   const monthMap = new Map<string, { count: number; totalAmount: number }>();
@@ -146,6 +144,9 @@ export default async function AdminReportsPage() {
     summaryTownsCovered,
     summaryDonationsYtd,
     summaryVolunteerPosts,
+    siteName: settings.branding.siteName,
+    siteTagline: settings.branding.siteTagline,
+    categoryLabels,
   };
 
   return <ReportsClient data={reportData} />;

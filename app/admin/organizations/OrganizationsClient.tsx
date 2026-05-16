@@ -9,7 +9,8 @@ import {
   Eye,
   Pencil,
   Trash2,
-  MoreHorizontal,
+  Power,
+  PowerOff,
   CheckCircle2,
   XCircle,
   Upload,
@@ -26,12 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -178,18 +173,21 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
       <div className="bg-shell rounded-lg border border-shoreline overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="border-shoreline">
-              <TableHead className="text-lighthouse font-semibold">Organization</TableHead>
-              <TableHead className="text-lighthouse font-semibold">Town</TableHead>
-              <TableHead className="text-lighthouse font-semibold">Phone</TableHead>
-              <TableHead className="text-lighthouse font-semibold">Status</TableHead>
-              <TableHead className="text-lighthouse font-semibold">Last Updated</TableHead>
-              <TableHead className="w-[70px]" />
+            <TableRow className="border-shoreline bg-sand/70 hover:bg-sand/70">
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Organization</TableHead>
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Town</TableHead>
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Phone</TableHead>
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Status</TableHead>
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Last Updated</TableHead>
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider text-right pr-4">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredOrgs.map((org) => (
-              <TableRow key={org.id} className="border-shoreline">
+              <TableRow
+                key={org.id}
+                className="border-shoreline hover:bg-seafoam/30 transition-colors"
+              >
                 <TableCell>
                   <div>
                     <div className="font-medium text-lighthouse">{org.name}</div>
@@ -218,52 +216,68 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
                 <TableCell className="text-sm text-driftwood">
                   {formatDate(org.last_updated)}
                 </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" disabled={isPending}>
-                        <MoreHorizontal className="w-4 h-4" />
-                        <span className="sr-only">Open actions menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="border-shoreline">
-                      <Link href={`/organization/${org.id}`} target="_blank">
-                        <DropdownMenuItem>
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Public
-                        </DropdownMenuItem>
+                <TableCell className="pr-2">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      asChild
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 text-driftwood hover:text-ocean hover:bg-seafoam"
+                      title="View public page"
+                    >
+                      <Link
+                        href={`/organization/${org.id}`}
+                        target="_blank"
+                        aria-label={`View public page for ${org.name}`}
+                      >
+                        <Eye className="w-4 h-4" />
                       </Link>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setEditingOrg(org);
-                          setIsFormDialogOpen(true);
-                        }}
-                      >
-                        <Pencil className="w-4 h-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setToggleTarget(org)}>
-                        {org.is_active ? (
-                          <>
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Deactivate
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Activate
-                          </>
-                        )}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600 focus:text-red-600"
-                        onClick={() => setDeleteTarget(org)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={isPending}
+                      onClick={() => {
+                        setEditingOrg(org);
+                        setIsFormDialogOpen(true);
+                      }}
+                      className="h-9 w-9 text-driftwood hover:text-ocean hover:bg-seafoam"
+                      title="Edit organization"
+                      aria-label={`Edit ${org.name}`}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={isPending}
+                      onClick={() => setToggleTarget(org)}
+                      className="h-9 w-9 text-driftwood hover:text-ocean hover:bg-seafoam"
+                      title={org.is_active ? 'Deactivate' : 'Activate'}
+                      aria-label={
+                        org.is_active
+                          ? `Deactivate ${org.name}`
+                          : `Activate ${org.name}`
+                      }
+                    >
+                      {org.is_active ? (
+                        <PowerOff className="w-4 h-4" />
+                      ) : (
+                        <Power className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={isPending}
+                      onClick={() => setDeleteTarget(org)}
+                      className="h-9 w-9 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      title="Delete organization"
+                      aria-label={`Delete ${org.name}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
