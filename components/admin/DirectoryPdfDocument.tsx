@@ -26,6 +26,7 @@ const PALETTE = {
   ocean: '#0D7C8F',
   shoreline: '#C4B8AD',
   sand: '#F5F0EB',
+  seafoam: '#E8F4F3',
 };
 
 const styles = StyleSheet.create({
@@ -36,9 +37,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: 'Helvetica',
     color: PALETTE.body,
+    lineHeight: 1.35,
   },
   titleBlock: {
-    marginBottom: 16,
+    marginBottom: 14,
     borderBottomWidth: 2,
     borderBottomColor: PALETTE.ocean,
     paddingBottom: 10,
@@ -52,29 +54,27 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 10,
     color: PALETTE.muted,
+    marginBottom: 2,
   },
   generatedAt: {
     fontSize: 9,
     color: PALETTE.muted,
-    marginTop: 4,
   },
   townBlock: {
-    marginTop: 14,
-    marginBottom: 4,
+    marginTop: 12,
   },
   townHeader: {
-    fontSize: 13,
+    fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: PALETTE.ocean,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
     marginBottom: 6,
     paddingBottom: 3,
     borderBottomWidth: 1,
     borderBottomColor: PALETTE.shoreline,
   },
   orgBlock: {
-    marginBottom: 10,
+    marginBottom: 8,
     padding: 8,
     backgroundColor: PALETTE.sand,
     borderLeftWidth: 3,
@@ -84,34 +84,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Helvetica-Bold',
     color: PALETTE.ink,
-    marginBottom: 2,
+    marginBottom: 3,
   },
-  orgAddress: {
+  addressLine: {
+    fontSize: 9,
+    color: PALETTE.body,
+    marginBottom: 4,
+  },
+  fieldLine: {
     fontSize: 9,
     color: PALETTE.body,
     marginBottom: 2,
   },
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 3,
-  },
-  metaItem: {
-    fontSize: 9,
-    color: PALETTE.body,
-  },
-  metaLabel: {
-    fontSize: 8,
+  labelText: {
+    fontFamily: 'Helvetica-Bold',
     color: PALETTE.muted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 4,
     marginTop: 4,
+    marginBottom: 2,
   },
   tag: {
     fontSize: 8,
@@ -121,19 +114,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 2,
+    marginRight: 4,
+    marginBottom: 3,
   },
-  spanishBadge: {
+  spanishTag: {
     fontSize: 8,
     color: PALETTE.ink,
-    backgroundColor: '#E8F4F3',
+    backgroundColor: PALETTE.seafoam,
+    borderWidth: 1,
+    borderColor: PALETTE.seafoam,
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 2,
+    marginRight: 4,
+    marginBottom: 3,
   },
   hoursLine: {
     fontSize: 9,
-    color: PALETTE.body,
+    color: PALETTE.muted,
     marginTop: 3,
+    fontFamily: 'Helvetica-Oblique',
   },
   pageNumber: {
     position: 'absolute',
@@ -159,11 +159,20 @@ const DAY_ORDER: Array<{ key: string; label: string }> = [
 function summarizeHours(hours: Organization['operating_hours']): string {
   if (!Array.isArray(hours) || hours.length === 0) return 'Hours not listed';
   const open = DAY_ORDER.filter((d) =>
-    hours.some((h) => h.day === d.key && !h.is_closed && h.open_time && h.close_time)
+    hours.some(
+      (h) => h.day === d.key && !h.is_closed && h.open_time && h.close_time
+    )
   ).map((d) => d.label);
   if (open.length === 0) return 'Hours not listed';
   if (open.length === 7) return 'Open every day';
   return `Open ${open.join(', ')}`;
+}
+
+function buildAddressLine(org: Organization): string {
+  const parts = [org.address, org.town, org.zip ? `NC ${org.zip}` : 'NC'].filter(
+    Boolean
+  );
+  return parts.join(', ');
 }
 
 function groupByTown(orgs: Organization[]): Array<[string, Organization[]]> {
@@ -202,39 +211,33 @@ export function DirectoryPdfDocument({
         </View>
 
         {grouped.map(([town, orgs]) => (
-          <View key={town} style={styles.townBlock} wrap={false}>
-            <Text style={styles.townHeader}>{town}</Text>
+          <View key={town} style={styles.townBlock}>
+            <Text style={styles.townHeader}>{town.toUpperCase()}</Text>
             {orgs.map((org) => (
               <View key={org.id} style={styles.orgBlock} wrap={false}>
                 <Text style={styles.orgName}>{org.name}</Text>
-                {(org.address || org.zip) && (
-                  <Text style={styles.orgAddress}>
-                    {[org.address, org.town, org.zip ? `NC ${org.zip}` : 'NC']
-                      .filter(Boolean)
-                      .join(', ')}
+
+                <Text style={styles.addressLine}>{buildAddressLine(org)}</Text>
+
+                {org.phone && (
+                  <Text style={styles.fieldLine}>
+                    <Text style={styles.labelText}>Phone:</Text>{' '}
+                    {formatPhone(org.phone)}
                   </Text>
                 )}
 
-                <View style={styles.metaRow}>
-                  {org.phone && (
-                    <Text style={styles.metaItem}>
-                      <Text style={styles.metaLabel}>Phone </Text>
-                      {formatPhone(org.phone)}
-                    </Text>
-                  )}
-                  {org.email && (
-                    <Text style={styles.metaItem}>
-                      <Text style={styles.metaLabel}>Email </Text>
-                      {org.email}
-                    </Text>
-                  )}
-                  {org.contact_name && (
-                    <Text style={styles.metaItem}>
-                      <Text style={styles.metaLabel}>Contact </Text>
-                      {org.contact_name}
-                    </Text>
-                  )}
-                </View>
+                {org.email && (
+                  <Text style={styles.fieldLine}>
+                    <Text style={styles.labelText}>Email:</Text> {org.email}
+                  </Text>
+                )}
+
+                {org.contact_name && (
+                  <Text style={styles.fieldLine}>
+                    <Text style={styles.labelText}>Contact:</Text>{' '}
+                    {org.contact_name}
+                  </Text>
+                )}
 
                 {org.assistance_types.length > 0 && (
                   <View style={styles.tagsRow}>
@@ -244,7 +247,7 @@ export function DirectoryPdfDocument({
                       </Text>
                     ))}
                     {org.spanish_available && (
-                      <Text style={styles.spanishBadge}>Spanish</Text>
+                      <Text style={styles.spanishTag}>Spanish</Text>
                     )}
                   </View>
                 )}

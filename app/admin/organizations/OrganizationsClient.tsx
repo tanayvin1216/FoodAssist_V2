@@ -169,33 +169,38 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
         />
       </div>
 
-      {/* Table */}
+      {/* Table — Actions column is pinned to the right so it stays visible
+          when the table needs to scroll horizontally on narrower viewports. */}
       <div className="bg-shell rounded-lg border border-shoreline overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="border-shoreline bg-sand/70 hover:bg-sand/70">
-              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Organization</TableHead>
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider whitespace-normal max-w-[320px]">Organization</TableHead>
               <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Town</TableHead>
-              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Phone</TableHead>
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider hidden md:table-cell">Phone</TableHead>
               <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Status</TableHead>
-              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider">Last Updated</TableHead>
-              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider text-right pr-4">Actions</TableHead>
+              <TableHead className="text-lighthouse font-semibold text-xs uppercase tracking-wider hidden lg:table-cell">Last Updated</TableHead>
+              <TableHead
+                className="text-lighthouse font-semibold text-xs uppercase tracking-wider text-right pr-4 sticky right-0 bg-sand/95 shadow-[-6px_0_8px_-6px_rgba(27,45,58,0.15)] w-[180px]"
+              >
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredOrgs.map((org) => (
               <TableRow
                 key={org.id}
-                className="border-shoreline hover:bg-seafoam/30 transition-colors"
+                className="group border-shoreline hover:bg-seafoam/30 transition-colors"
               >
-                <TableCell>
+                <TableCell className="whitespace-normal max-w-[320px]">
                   <div>
                     <div className="font-medium text-lighthouse">{org.name}</div>
                     <div className="text-sm text-driftwood">{org.address}</div>
                   </div>
                 </TableCell>
                 <TableCell className="text-body">{org.town}</TableCell>
-                <TableCell className="text-body">{formatPhone(org.phone)}</TableCell>
+                <TableCell className="text-body hidden md:table-cell">{formatPhone(org.phone)}</TableCell>
                 <TableCell>
                   <Badge
                     variant={org.is_active ? 'default' : 'secondary'}
@@ -213,10 +218,10 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
                     {org.is_active ? 'Active' : 'Inactive'}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm text-driftwood">
+                <TableCell className="text-sm text-driftwood hidden lg:table-cell">
                   {formatDate(org.last_updated)}
                 </TableCell>
-                <TableCell className="pr-2">
+                <TableCell className="pr-2 sticky right-0 bg-shell group-hover:bg-[#dbf0ee] transition-colors shadow-[-6px_0_8px_-6px_rgba(27,45,58,0.15)]">
                   <div className="flex items-center justify-end gap-1">
                     <Button
                       asChild
