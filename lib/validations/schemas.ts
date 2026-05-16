@@ -257,6 +257,18 @@ export const settingsPatchSchema = z
       .object({
         assistanceTypes: z.array(categoryItemPatchSchema).optional(),
         donationTypes: z.array(categoryItemPatchSchema).optional(),
+        towns: z.array(z.string().min(1).max(80)).optional(),
+      })
+      .optional(),
+    announcement: z
+      .object({
+        enabled: z.boolean().optional(),
+        message: z.string().max(500).optional(),
+        linkLabel: z.string().max(60).optional(),
+        linkHref: z.string().max(500).optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        tone: z.enum(['info', 'warning', 'success']).optional(),
       })
       .optional(),
   })

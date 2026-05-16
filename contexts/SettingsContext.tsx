@@ -180,6 +180,15 @@ export function useCategories() {
 }
 
 /**
+ * Admin-managed list of towns shown in organization edit/create forms.
+ * Sorted alphabetically for stable order regardless of insertion order.
+ */
+export function useTowns() {
+  const { settings } = useSettings();
+  return [...settings.categories.towns].sort((a, b) => a.localeCompare(b));
+}
+
+/**
  * Active assistance types from the catalog, in display order.
  * Use this to render checkboxes/filters on forms.
  */

@@ -23,11 +23,14 @@ import {
   SERVED_POPULATION_LABELS,
   COST_LABELS,
   DAY_LABELS,
-  CARTERET_COUNTY_TOWNS,
   SERVED_POPULATIONS,
   DAYS_OF_WEEK,
 } from '@/lib/utils/constants';
-import { useAssistanceTypes, useDonationTypes } from '@/contexts/SettingsContext';
+import {
+  useAssistanceTypes,
+  useDonationTypes,
+  useTowns,
+} from '@/contexts/SettingsContext';
 import { formatPhone } from '@/lib/utils/formatters';
 
 interface OrgFormProps {
@@ -125,6 +128,15 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
   const operatingHours = watch('operating_hours');
   const assistanceTypes = useAssistanceTypes();
   const donationTypes = useDonationTypes();
+  const townsList = useTowns();
+  const currentTown = watch('town');
+  // If the org's existing town has been removed from the admin catalog,
+  // still surface it as an option so the form can be edited without
+  // silently losing the value.
+  const townOptions =
+    currentTown && !townsList.includes(currentTown)
+      ? [...townsList, currentTown]
+      : townsList;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -162,7 +174,7 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
                       <SelectValue placeholder="Select town" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CARTERET_COUNTY_TOWNS.map((town) => (
+                      {townOptions.map((town) => (
                         <SelectItem key={town} value={town}>
                           {town}
                         </SelectItem>

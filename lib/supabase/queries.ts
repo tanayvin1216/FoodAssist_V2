@@ -414,19 +414,23 @@ interface SiteSettingsRow {
   navigation: SiteSettings['navigation'];
   metadata: SiteSettings['metadata'];
   categories: Partial<SiteSettings['categories']> | null;
+  announcement: Partial<SiteSettings['announcement']> | null;
   updated_at: string;
   updated_by: string | null;
 }
 
 function rowToSettings(row: SiteSettingsRow): SiteSettings {
-  // `categories` may be missing on rows created before the migration ran in a
-  // given environment; fall back to in-code defaults so the UI never breaks.
+  // JSONB columns added in later migrations may be missing/empty on rows that
+  // existed before the migration ran in a given environment; fall back to
+  // in-code defaults so the UI never breaks.
   const categories = {
     assistanceTypes:
       row.categories?.assistanceTypes ?? defaultSettings.categories.assistanceTypes,
     donationTypes:
       row.categories?.donationTypes ?? defaultSettings.categories.donationTypes,
+    towns: row.categories?.towns ?? defaultSettings.categories.towns,
   };
+  const announcement = { ...defaultSettings.announcement, ...(row.announcement ?? {}) };
   return {
     branding: row.branding,
     contact: row.contact,
@@ -435,6 +439,7 @@ function rowToSettings(row: SiteSettingsRow): SiteSettings {
     navigation: row.navigation,
     metadata: row.metadata,
     categories,
+    announcement,
     lastUpdated: row.updated_at,
     updatedBy: row.updated_by ?? undefined,
   };
@@ -490,6 +495,9 @@ export async function updateSiteSettings(
     categories: patch.categories
       ? { ...current.categories, ...patch.categories }
       : current.categories,
+    announcement: patch.announcement
+      ? { ...current.announcement, ...patch.announcement }
+      : current.announcement,
     updated_by: updatedBy,
   };
 

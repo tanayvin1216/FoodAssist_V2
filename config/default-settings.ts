@@ -1,4 +1,5 @@
 import { SiteSettings } from '@/types/settings';
+import { CARTERET_COUNTY_TOWNS } from '@/lib/utils/constants';
 
 export const defaultSettings: SiteSettings = {
   branding: {
@@ -144,6 +145,12 @@ export const defaultSettings: SiteSettings = {
       { slug: 'kitchen_household_items', label: 'Kitchen/Household Items', isActive: true, order: 5 },
       { slug: 'clothing_or_shoes', label: 'Clothing/Shoes', isActive: true, order: 6 },
     ],
+    towns: [...CARTERET_COUNTY_TOWNS],
+  },
+  announcement: {
+    enabled: false,
+    message: '',
+    tone: 'info',
   },
   lastUpdated: new Date().toISOString(),
 };

@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Trash2, Tag } from 'lucide-react';
+import { Loader2, Plus, Trash2, Tag, MapPin } from 'lucide-react';
 import { useCategories, useSettings } from '@/contexts/SettingsContext';
 import { CategoryItem } from '@/types/settings';
 import { toast } from 'sonner';
@@ -202,11 +202,32 @@ export function CategoriesForm() {
   const [donation, setDonation] = useState<CategoryItem[]>(
     categories.donationTypes
   );
+  const [towns, setTowns] = useState<string[]>(categories.towns);
+  const [newTown, setNewTown] = useState('');
 
   useEffect(() => {
     setAssistance(categories.assistanceTypes);
     setDonation(categories.donationTypes);
+    setTowns(categories.towns);
   }, [categories]);
+
+  const addTown = () => {
+    const trimmed = newTown.trim();
+    if (!trimmed) {
+      toast.error('Enter a town name first');
+      return;
+    }
+    if (towns.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
+      toast.error('That town is already in the list');
+      return;
+    }
+    setTowns([...towns, trimmed].sort((a, b) => a.localeCompare(b)));
+    setNewTown('');
+  };
+
+  const removeTown = (town: string) => {
+    setTowns(towns.filter((t) => t !== town));
+  };
 
   const handleSave = () => {
     startTransition(async () => {
@@ -218,6 +239,7 @@ export function CategoriesForm() {
             categories: {
               assistanceTypes: withReorderedIndexes(assistance),
               donationTypes: withReorderedIndexes(donation),
+              towns,
             },
           }),
         });
@@ -259,6 +281,66 @@ export function CategoriesForm() {
         initial={donation}
         onChange={setDonation}
       />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
+            Towns
+          </CardTitle>
+          <CardDescription>
+            Towns offered in the organization edit form. Removing a town does
+            not change existing organization records — only what admins can
+            pick going forward.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {towns.map((town) => (
+              <span
+                key={town}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm bg-gray-100 border border-gray-200"
+              >
+                {town}
+                <button
+                  type="button"
+                  onClick={() => removeTown(town)}
+                  className="text-gray-400 hover:text-red-600"
+                  aria-label={`Remove ${town}`}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+            {towns.length === 0 && (
+              <p className="text-sm text-gray-500">No towns yet. Add one below.</p>
+            )}
+          </div>
+
+          <div className="flex items-end gap-2 pt-2 border-t">
+            <div className="flex-1">
+              <Label className="text-xs text-gray-500 mb-1 block">
+                Add new town
+              </Label>
+              <Input
+                value={newTown}
+                onChange={(e) => setNewTown(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTown();
+                  }
+                }}
+                placeholder="e.g. Cape Carteret"
+              />
+            </div>
+            <Button type="button" variant="outline" onClick={addTown}>
+              <Plus className="w-4 h-4 mr-1" />
+              Add
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={isPending}>

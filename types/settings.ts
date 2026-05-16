@@ -81,6 +81,27 @@ export interface CategoryItem {
 export interface CategoriesSettings {
   assistanceTypes: CategoryItem[];
   donationTypes: CategoryItem[];
+  /**
+   * Towns offered in the organization edit form. Stored as plain strings
+   * (no slug/active model) since towns are geographic labels, not tags.
+   */
+  towns: string[];
+}
+
+/**
+ * Optional banner shown above the public directory. Admins use this for
+ * holiday closures, drive announcements, or other timely community messages.
+ */
+export interface AnnouncementSettings {
+  enabled: boolean;
+  message: string;
+  linkLabel?: string;
+  linkHref?: string;
+  /** ISO date (YYYY-MM-DD). Banner hides before this date when set. */
+  startDate?: string;
+  /** ISO date (YYYY-MM-DD). Banner hides after this date when set. */
+  endDate?: string;
+  tone: 'info' | 'warning' | 'success';
 }
 
 export interface SiteSettings {
@@ -91,6 +112,7 @@ export interface SiteSettings {
   navigation: NavigationSettings;
   metadata: MetadataSettings;
   categories: CategoriesSettings;
+  announcement: AnnouncementSettings;
   lastUpdated: string;
   updatedBy?: string;
 }
