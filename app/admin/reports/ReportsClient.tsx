@@ -155,13 +155,30 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
     const orgs = includeInactive
       ? allOrganizations
       : allOrganizations.filter((o) => o.is_active);
-    const headers = ['Name', 'Town', 'ZIP', 'Phone', 'Assistance Types', 'Status'];
+    const headers = [
+      'Name',
+      'Contact Name',
+      'Email',
+      'Phone',
+      'Address',
+      'Town',
+      'ZIP',
+      'Website',
+      'Assistance Types',
+      'Spanish Available',
+      'Status',
+    ];
     const rows = orgs.map((o) => [
       o.name,
+      o.contact_name ?? '',
+      o.email ?? '',
+      o.phone,
+      o.address,
       o.town,
       o.zip,
-      o.phone,
+      o.website ?? '',
       o.assistance_types.join('; '),
+      o.spanish_available ? 'Yes' : 'No',
       o.is_active ? 'Active' : 'Inactive',
     ]);
     downloadCsv([headers, ...rows], `organizations-${new Date().toISOString().split('T')[0]}.csv`);
@@ -186,13 +203,22 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
     const needs = includeInactive
       ? allVolunteerNeeds
       : allVolunteerNeeds.filter((v) => v.is_active);
-    const headers = ['Organization', 'Title', 'Description', 'Date Needed', 'Time Commitment', 'Status'];
+    const headers = [
+      'Organization',
+      'Title',
+      'Description',
+      'Date Needed',
+      'Time Commitment',
+      'Contact Email',
+      'Status',
+    ];
     const rows = needs.map((v) => [
       v.organization?.name ?? v.organization_id,
       v.title,
       v.description,
       v.needed_date ?? '',
       v.time_commitment ?? '',
+      v.contact_email ?? '',
       v.is_active ? 'Active' : 'Inactive',
     ]);
     downloadCsv([headers, ...rows], `volunteer-needs-${new Date().toISOString().split('T')[0]}.csv`);
