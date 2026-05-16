@@ -1,21 +1,30 @@
 // Database types for Food Assistance Directory
 
-export type AssistanceType =
-  | 'collection'
-  | 'hot_meals_eat_in'
-  | 'hot_meals_pickup'
-  | 'hot_meals_delivery'
-  | 'staffed_pantry'
-  | 'self_serve_pantry';
+// Assistance and donation types are admin-editable in site_settings.categories.
+// The slugs of the seeded defaults are listed here for code that needs to
+// reference the built-ins (e.g. importer column mapping); new admin-added
+// slugs are not enumerated and use plain strings throughout.
+export type AssistanceType = string;
+export type DonationType = string;
 
-export type DonationType =
-  | 'non_perishables'
-  | 'frozen_meals_or_meats'
-  | 'fresh_produce'
-  | 'prepared_meals'
-  | 'hygiene_or_housecleaning'
-  | 'kitchen_household_items'
-  | 'clothing_or_shoes';
+export const DEFAULT_ASSISTANCE_TYPE_SLUGS = [
+  'collection',
+  'hot_meals_eat_in',
+  'hot_meals_pickup',
+  'hot_meals_delivery',
+  'staffed_pantry',
+  'self_serve_pantry',
+] as const;
+
+export const DEFAULT_DONATION_TYPE_SLUGS = [
+  'non_perishables',
+  'frozen_meals_or_meats',
+  'fresh_produce',
+  'prepared_meals',
+  'hygiene_or_housecleaning',
+  'kitchen_household_items',
+  'clothing_or_shoes',
+] as const;
 
 export type ServedPopulation = 'children' | 'older_adults' | 'all';
 

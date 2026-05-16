@@ -15,20 +15,26 @@ import {
   getAdminStats,
   getDashboardSnapshot,
   getOrganizations,
+  getSiteSettings,
 } from '@/lib/supabase/queries';
 import { formatCurrency, formatDate } from '@/lib/utils/formatters';
-import { ASSISTANCE_TYPE_LABELS } from '@/lib/utils/constants';
+import {
+  buildCategoryLabelMap,
+  resolveCategoryLabel,
+} from '@/lib/utils/category-labels';
 import type { AssistanceType } from '@/types/database';
 import { computeOrgCompleteness } from '@/lib/utils/org-completeness';
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
 
-  const [stats, snapshot, allOrgs] = await Promise.all([
+  const [stats, snapshot, allOrgs, settings] = await Promise.all([
     getAdminStats(supabase),
     getDashboardSnapshot(supabase),
     getOrganizations(supabase, undefined, false),
+    getSiteSettings(supabase),
   ]);
+  const categoryLabels = buildCategoryLabelMap(settings.categories);
 
   const totalOrgs = stats.totalOrganizations;
 
@@ -243,7 +249,7 @@ export default async function AdminDashboardPage() {
                 ([type, count]) => (
                   <div key={type} className="flex items-center justify-between">
                     <span className="text-sm" style={{ color: '#4A5568' }}>
-                      {ASSISTANCE_TYPE_LABELS[type]}
+                      {resolveCategoryLabel(type, categoryLabels)}
                     </span>
                     <div className="flex items-center gap-2">
                       <div

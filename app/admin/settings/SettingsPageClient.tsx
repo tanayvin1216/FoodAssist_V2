@@ -2,6 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BrandingForm } from './components/BrandingForm';
+import { CategoriesForm } from './components/CategoriesForm';
 import { ContactForm } from './components/ContactForm';
 import { ContentForm } from './components/ContentForm';
 import { NavigationForm } from './components/NavigationForm';
@@ -19,11 +20,12 @@ export function SettingsPageClient() {
 
       {/* Settings Tabs */}
       <Tabs defaultValue="branding" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
           <TabsTrigger value="content">Content</TabsTrigger>
           <TabsTrigger value="navigation">Navigation</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
         </TabsList>
 
         <TabsContent value="branding">
@@ -40,6 +42,10 @@ export function SettingsPageClient() {
 
         <TabsContent value="navigation">
           <NavigationForm />
+        </TabsContent>
+
+        <TabsContent value="categories">
+          <CategoriesForm />
         </TabsContent>
       </Tabs>
     </div>

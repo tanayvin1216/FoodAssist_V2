@@ -65,6 +65,24 @@ export interface MetadataSettings {
   keywords: string[];
 }
 
+/**
+ * A single admin-managed category (e.g. an assistance type or donation type).
+ * `slug` is the immutable identifier persisted on organization rows; `label`
+ * is the user-facing display string and can be edited by admins. `isActive`
+ * hides the category from forms/filters without losing historical data.
+ */
+export interface CategoryItem {
+  slug: string;
+  label: string;
+  isActive: boolean;
+  order: number;
+}
+
+export interface CategoriesSettings {
+  assistanceTypes: CategoryItem[];
+  donationTypes: CategoryItem[];
+}
+
 export interface SiteSettings {
   branding: BrandingSettings;
   contact: ContactSettings;
@@ -72,6 +90,7 @@ export interface SiteSettings {
   emergency: EmergencySettings;
   navigation: NavigationSettings;
   metadata: MetadataSettings;
+  categories: CategoriesSettings;
   lastUpdated: string;
   updatedBy?: string;
 }

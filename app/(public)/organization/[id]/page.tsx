@@ -18,11 +18,15 @@ import {
   XCircle,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import { getOrganizationById } from '@/lib/supabase/queries';
+import { getOrganizationById, getSiteSettings } from '@/lib/supabase/queries';
 import {
   SERVED_POPULATION_LABELS,
   COST_LABELS,
 } from '@/lib/utils/constants';
+import {
+  buildCategoryLabelMap,
+  resolveCategoryLabel,
+} from '@/lib/utils/category-labels';
 import {
   formatPhone,
   formatTime,
@@ -42,14 +46,24 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
   const { id } = await params;
 
   const supabase = await createClient();
-  const [organization, { t, locale }] = await Promise.all([
+  const [organization, { t, locale }, settings] = await Promise.all([
     getOrganizationById(supabase, id),
     getServerTranslator(),
+    getSiteSettings(supabase),
   ]);
 
   if (!organization || !organization.is_active) {
     notFound();
   }
+
+  const categoryLabels = buildCategoryLabelMap(settings.categories);
+  // Prefer the i18n dictionary string for built-in slugs (gives ES users a
+  // localized label); fall back to the admin catalog for admin-added slugs.
+  const i18nOrCatalog = (slug: string, prefix: 'assistance' | 'donation') => {
+    const key = `${prefix}.${slug}` as MessageKey;
+    const translated = t(key);
+    return translated === key ? resolveCategoryLabel(slug, categoryLabels) : translated;
+  };
 
   const {
     name,
@@ -98,7 +112,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                 key={type}
                 className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs"
               >
-                {t(`assistance.${type}` as MessageKey)}
+                {i18nOrCatalog(type, 'assistance')}
               </span>
             ))}
           </div>
@@ -245,7 +259,7 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   {donations_accepted.map((type) => (
                     <span key={type} className="text-navy bg-tag-bg rounded-full px-2.5 py-1 text-xs">
-                      {t(`donation.${type}` as MessageKey)}
+                      {i18nOrCatalog(type, 'donation')}
                     </span>
                   ))}
                 </div>

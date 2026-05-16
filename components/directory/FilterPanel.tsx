@@ -6,11 +6,9 @@ import {
   DayOfWeek,
   DirectoryFilters,
 } from '@/types/database';
-import {
-  ASSISTANCE_TYPES,
-  DAYS_OF_WEEK,
-} from '@/lib/utils/constants';
+import { DAYS_OF_WEEK } from '@/lib/utils/constants';
 import { useTranslation } from '@/contexts/LocaleContext';
+import { useAssistanceTypes } from '@/contexts/SettingsContext';
 import type { MessageKey } from '@/lib/i18n/dictionary';
 
 interface FilterPanelProps {
@@ -23,6 +21,14 @@ interface FilterPanelProps {
 
 export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: FilterPanelProps) {
   const { t, locale } = useTranslation();
+  const assistanceTypes = useAssistanceTypes();
+  // For built-in slugs the i18n dictionary has localized strings (incl. ES);
+  // prefer that, otherwise fall back to the admin-edited catalog label.
+  const assistLabel = (slug: string, fallback: string): string => {
+    const key = `assistance.${slug}` as MessageKey;
+    const translated = t(key);
+    return translated === key ? fallback : translated;
+  };
   const DAY_SHORT_EN: Record<DayOfWeek, string> = {
     monday: 'Mo',
     tuesday: 'Tu',
@@ -100,17 +106,17 @@ export function FilterPanel({ filters, onChange, towns, isOpen, onClose }: Filte
           {t('dir.filter.assistance')}
         </h4>
         <div className="flex flex-wrap gap-2">
-          {ASSISTANCE_TYPES.map((type) => (
+          {assistanceTypes.map((type) => (
             <button
-              key={type}
-              onClick={() => handleAssistanceTypeChange(type)}
+              key={type.slug}
+              onClick={() => handleAssistanceTypeChange(type.slug)}
               className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                filters.assistanceTypes?.includes(type)
+                filters.assistanceTypes?.includes(type.slug)
                   ? 'bg-navy text-white'
                   : 'text-body-text hover:bg-navy/5'
               }`}
             >
-              {t(`assistance.${type}` as MessageKey)}
+              {assistLabel(type.slug, type.label)}
             </button>
           ))}
         </div>

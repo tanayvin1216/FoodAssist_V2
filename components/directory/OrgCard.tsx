@@ -10,6 +10,7 @@ import {
   getDirectionsUrl,
 } from '@/lib/utils/formatters';
 import { useTranslation } from '@/contexts/LocaleContext';
+import { useCategoryLabel } from '@/contexts/SettingsContext';
 import type { MessageKey } from '@/lib/i18n/dictionary';
 
 interface OrgCardProps {
@@ -30,8 +31,15 @@ export function OrgCard({ organization }: OrgCardProps) {
     spanish_available,
   } = organization;
 
-  const assistLabel = (type: AssistanceType): string =>
-    t(`assistance.${type}` as MessageKey);
+  const fallbackLabel = useCategoryLabel();
+  // Prefer the localized dictionary string for built-in slugs (gives ES users
+  // a translated label); fall back to the admin-managed catalog label so
+  // admin-added slugs render with the configured display name.
+  const assistLabel = (type: AssistanceType): string => {
+    const key = `assistance.${type}` as MessageKey;
+    const translated = t(key);
+    return translated === key ? fallbackLabel(type) : translated;
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 hover:shadow-lg transition-shadow">

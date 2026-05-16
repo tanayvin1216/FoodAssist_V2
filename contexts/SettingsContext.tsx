@@ -19,6 +19,7 @@ interface SettingsContextType {
   updateHero: (hero: Partial<SiteSettings['hero']>) => void;
   updateEmergency: (emergency: Partial<SiteSettings['emergency']>) => void;
   updateNavigation: (navigation: Partial<SiteSettings['navigation']>) => void;
+  updateCategories: (categories: Partial<SiteSettings['categories']>) => void;
   /** Re-fetch settings from the API. Used after a successful admin save. */
   refresh: () => Promise<void>;
 }
@@ -110,6 +111,16 @@ export function SettingsProvider({
     }));
   };
 
+  const updateCategories = (
+    categories: Partial<SiteSettings['categories']>
+  ) => {
+    setSettings((prev) => ({
+      ...prev,
+      categories: { ...prev.categories, ...categories },
+      lastUpdated: new Date().toISOString(),
+    }));
+  };
+
   return (
     <SettingsContext.Provider
       value={{
@@ -120,6 +131,7 @@ export function SettingsProvider({
         updateHero,
         updateEmergency,
         updateNavigation,
+        updateCategories,
         refresh: fetchSettings,
       }}
     >
@@ -160,4 +172,46 @@ export function useEmergencySettings() {
 export function useNavigation() {
   const { settings, updateNavigation } = useSettings();
   return { navigation: settings.navigation, updateNavigation };
+}
+
+export function useCategories() {
+  const { settings, updateCategories } = useSettings();
+  return { categories: settings.categories, updateCategories };
+}
+
+/**
+ * Active assistance types from the catalog, in display order.
+ * Use this to render checkboxes/filters on forms.
+ */
+export function useAssistanceTypes() {
+  const { settings } = useSettings();
+  return [...settings.categories.assistanceTypes]
+    .filter((c) => c.isActive)
+    .sort((a, b) => a.order - b.order);
+}
+
+/**
+ * Active donation types from the catalog, in display order.
+ */
+export function useDonationTypes() {
+  const { settings } = useSettings();
+  return [...settings.categories.donationTypes]
+    .filter((c) => c.isActive)
+    .sort((a, b) => a.order - b.order);
+}
+
+/**
+ * Look up the display label for a category slug. Searches both lists so a
+ * single call site works for either kind. Falls back to a humanized slug
+ * when the catalog has been pruned but historical org rows still reference it.
+ */
+export function useCategoryLabel() {
+  const { settings } = useSettings();
+  return (slug: string): string => {
+    const match =
+      settings.categories.assistanceTypes.find((c) => c.slug === slug) ??
+      settings.categories.donationTypes.find((c) => c.slug === slug);
+    if (match) return match.label;
+    return slug.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  };
 }

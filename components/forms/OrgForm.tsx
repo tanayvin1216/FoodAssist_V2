@@ -20,17 +20,14 @@ import { Separator } from '@/components/ui/separator';
 import { Organization } from '@/types/database';
 import { organizationSchema, OrganizationFormValues } from '@/lib/validations/schemas';
 import {
-  ASSISTANCE_TYPE_LABELS,
-  DONATION_TYPE_LABELS,
   SERVED_POPULATION_LABELS,
   COST_LABELS,
   DAY_LABELS,
   CARTERET_COUNTY_TOWNS,
-  ASSISTANCE_TYPES,
-  DONATION_TYPES,
   SERVED_POPULATIONS,
   DAYS_OF_WEEK,
 } from '@/lib/utils/constants';
+import { useAssistanceTypes, useDonationTypes } from '@/contexts/SettingsContext';
 import { formatPhone } from '@/lib/utils/formatters';
 
 interface OrgFormProps {
@@ -126,6 +123,8 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
   });
 
   const operatingHours = watch('operating_hours');
+  const assistanceTypes = useAssistanceTypes();
+  const donationTypes = useDonationTypes();
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -256,30 +255,30 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
           <div>
             <Label className="mb-3 block">Type of Assistance *</Label>
             <div className="grid gap-2 sm:grid-cols-2">
-              {ASSISTANCE_TYPES.map((type) => (
+              {assistanceTypes.map((type) => (
                 <Controller
-                  key={type}
+                  key={type.slug}
                   name="assistance_types"
                   control={control}
                   render={({ field }) => (
                     <div className="flex items-center space-x-2">
                       <Checkbox
-                        id={`assistance-${type}`}
-                        checked={field.value?.includes(type)}
+                        id={`assistance-${type.slug}`}
+                        checked={field.value?.includes(type.slug)}
                         onCheckedChange={(checked) => {
                           const current = field.value || [];
                           if (checked) {
-                            field.onChange([...current, type]);
+                            field.onChange([...current, type.slug]);
                           } else {
-                            field.onChange(current.filter((t) => t !== type));
+                            field.onChange(current.filter((t) => t !== type.slug));
                           }
                         }}
                       />
                       <Label
-                        htmlFor={`assistance-${type}`}
+                        htmlFor={`assistance-${type.slug}`}
                         className="text-sm font-normal cursor-pointer"
                       >
-                        {ASSISTANCE_TYPE_LABELS[type]}
+                        {type.label}
                       </Label>
                     </div>
                   )}
@@ -447,30 +446,30 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2 sm:grid-cols-2">
-            {DONATION_TYPES.map((type) => (
+            {donationTypes.map((type) => (
               <Controller
-                key={type}
+                key={type.slug}
                 name="donations_accepted"
                 control={control}
                 render={({ field }) => (
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id={`donation-${type}`}
-                      checked={field.value?.includes(type)}
+                      id={`donation-${type.slug}`}
+                      checked={field.value?.includes(type.slug)}
                       onCheckedChange={(checked) => {
                         const current = field.value || [];
                         if (checked) {
-                          field.onChange([...current, type]);
+                          field.onChange([...current, type.slug]);
                         } else {
-                          field.onChange(current.filter((t) => t !== type));
+                          field.onChange(current.filter((t) => t !== type.slug));
                         }
                       }}
                     />
                     <Label
-                      htmlFor={`donation-${type}`}
+                      htmlFor={`donation-${type.slug}`}
                       className="text-sm font-normal cursor-pointer"
                     >
-                      {DONATION_TYPE_LABELS[type]}
+                      {type.label}
                     </Label>
                   </div>
                 )}

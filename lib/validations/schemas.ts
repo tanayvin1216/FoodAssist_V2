@@ -1,11 +1,15 @@
 import { z } from 'zod';
 import {
-  ASSISTANCE_TYPES,
-  DONATION_TYPES,
   SERVED_POPULATIONS,
   DAYS_OF_WEEK,
   NC_ZIP_CODE_PATTERN,
 } from '@/lib/utils/constants';
+
+// Assistance and donation type slugs come from the admin-managed catalog
+// in site_settings.categories. We validate shape (non-empty string) but not
+// membership — the catalog can change at runtime without redeploying.
+const SLUG_PATTERN = /^[a-z0-9_]+$/;
+const categorySlugSchema = z.string().min(1).max(60).regex(SLUG_PATTERN, 'Slug must be lowercase letters, numbers, or underscores');
 
 // Phone: optional at the schema level, kept as the user entered it.
 // Real-world data (import + admin quick-add) often has extensions,
@@ -73,14 +77,14 @@ export const organizationSchema = z.object({
   website: urlSchema,
   facebook: urlSchema,
   assistance_types: z
-    .array(z.enum(ASSISTANCE_TYPES as [string, ...string[]]))
+    .array(categorySlugSchema)
     .min(1, 'Select at least one assistance type'),
   who_served: z.array(z.enum(SERVED_POPULATIONS as [string, ...string[]])),
   cost: z.enum(['free', 'sliding_scale', 'other']),
   num_meals_available: z.number().int().nonnegative().optional(),
   operating_hours: z.array(operatingHoursSchema),
   hours_notes: z.string().max(500).optional(),
-  donations_accepted: z.array(z.enum(DONATION_TYPES as [string, ...string[]])),
+  donations_accepted: z.array(categorySlugSchema),
   storage_capacity: storageCapacitySchema.optional(),
   comments: z.string().max(2000).optional(),
   is_active: z.boolean(),
@@ -156,9 +160,9 @@ export const loginSchema = z.object({
 export const directoryFilterSchema = z.object({
   search: z.string().optional(),
   town: z.string().optional(),
-  assistanceTypes: z.array(z.enum(ASSISTANCE_TYPES as [string, ...string[]])).optional(),
+  assistanceTypes: z.array(categorySlugSchema).optional(),
   daysOpen: z.array(z.enum(DAYS_OF_WEEK as [string, ...string[]])).optional(),
-  donationTypes: z.array(z.enum(DONATION_TYPES as [string, ...string[]])).optional(),
+  donationTypes: z.array(categorySlugSchema).optional(),
   servedPopulations: z.array(z.enum(SERVED_POPULATIONS as [string, ...string[]])).optional(),
 });
 
@@ -175,6 +179,13 @@ const navigationItemPatchSchema = z.object({
   order: z.number().int(),
   showInHeader: z.boolean(),
   showInFooter: z.boolean(),
+});
+
+const categoryItemPatchSchema = z.object({
+  slug: categorySlugSchema,
+  label: z.string().min(1, 'Label is required').max(100),
+  isActive: z.boolean(),
+  order: z.number().int().nonnegative(),
 });
 
 export const settingsPatchSchema = z
@@ -240,6 +251,12 @@ export const settingsPatchSchema = z
         title: z.string().optional(),
         description: z.string().optional(),
         keywords: z.array(z.string()).optional(),
+      })
+      .optional(),
+    categories: z
+      .object({
+        assistanceTypes: z.array(categoryItemPatchSchema).optional(),
+        donationTypes: z.array(categoryItemPatchSchema).optional(),
       })
       .optional(),
   })

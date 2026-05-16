@@ -413,11 +413,20 @@ interface SiteSettingsRow {
   emergency: SiteSettings['emergency'];
   navigation: SiteSettings['navigation'];
   metadata: SiteSettings['metadata'];
+  categories: Partial<SiteSettings['categories']> | null;
   updated_at: string;
   updated_by: string | null;
 }
 
 function rowToSettings(row: SiteSettingsRow): SiteSettings {
+  // `categories` may be missing on rows created before the migration ran in a
+  // given environment; fall back to in-code defaults so the UI never breaks.
+  const categories = {
+    assistanceTypes:
+      row.categories?.assistanceTypes ?? defaultSettings.categories.assistanceTypes,
+    donationTypes:
+      row.categories?.donationTypes ?? defaultSettings.categories.donationTypes,
+  };
   return {
     branding: row.branding,
     contact: row.contact,
@@ -425,6 +434,7 @@ function rowToSettings(row: SiteSettingsRow): SiteSettings {
     emergency: row.emergency,
     navigation: row.navigation,
     metadata: row.metadata,
+    categories,
     lastUpdated: row.updated_at,
     updatedBy: row.updated_by ?? undefined,
   };
@@ -477,6 +487,9 @@ export async function updateSiteSettings(
     metadata: patch.metadata
       ? { ...current.metadata, ...patch.metadata }
       : current.metadata,
+    categories: patch.categories
+      ? { ...current.categories, ...patch.categories }
+      : current.categories,
     updated_by: updatedBy,
   };
 
