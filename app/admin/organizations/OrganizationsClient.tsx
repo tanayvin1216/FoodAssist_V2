@@ -145,7 +145,7 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
             Import XLS/CSV
           </Button>
           <Button
-            className="bg-lighthouse hover:bg-black text-white"
+            className="bg-black hover:bg-neutral-800 text-white"
             onClick={() => {
               setEditingOrg(null);
               setIsFormDialogOpen(true);
