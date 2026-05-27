@@ -7,17 +7,31 @@ import {
   createOrganization,
   updateOrganization,
   deleteOrganization,
+  createVolunteerNeed,
 } from '@/lib/supabase/queries';
-import { OrganizationFormValues } from '@/lib/validations/schemas';
-import { OrganizationFormData } from '@/types/database';
+import { OrganizationFormValues, VolunteerNeedFormValues } from '@/lib/validations/schemas';
+import { OrganizationFormData, VolunteerNeedFormData } from '@/types/database';
 
 export async function createOrganizationAction(
-  data: OrganizationFormValues
+  data: OrganizationFormValues,
+  // Volunteer needs staged in the form while the org didn't exist yet. They
+  // attach to the new org id once the row is created.
+  volunteerNeeds?: Array<Omit<VolunteerNeedFormValues, 'organization_id'>>
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   await requireAdmin();
   try {
     const supabase = await createClient();
     const org = await createOrganization(supabase, data as unknown as OrganizationFormData);
+    if (volunteerNeeds?.length) {
+      for (const need of volunteerNeeds) {
+        await createVolunteerNeed(supabase, {
+          ...need,
+          organization_id: org.id,
+        } as unknown as VolunteerNeedFormData);
+      }
+      revalidatePath('/admin/volunteers');
+      revalidatePath('/volunteers');
+    }
     revalidatePath('/admin/organizations');
     revalidatePath('/admin');
     revalidatePath('/');

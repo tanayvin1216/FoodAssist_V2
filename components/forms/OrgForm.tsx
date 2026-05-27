@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
@@ -17,8 +18,12 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Organization } from '@/types/database';
+import { Organization, VolunteerNeed } from '@/types/database';
 import { organizationSchema, OrganizationFormValues } from '@/lib/validations/schemas';
+import {
+  VolunteerNeedsSection,
+  type StagedVolunteerNeed,
+} from '@/components/forms/VolunteerNeedsSection';
 import {
   SERVED_POPULATION_LABELS,
   COST_LABELS,
@@ -35,8 +40,17 @@ import { formatPhone } from '@/lib/utils/formatters';
 
 interface OrgFormProps {
   organization?: Organization;
-  onSubmit: (data: OrganizationFormValues) => Promise<void>;
+  // The second arg carries volunteer needs staged for a brand-new org (none
+  // exist yet to attach them to). For an existing org they persist inline, so
+  // it is omitted. Callers that don't render the section can ignore it.
+  onSubmit: (
+    data: OrganizationFormValues,
+    volunteerNeeds?: StagedVolunteerNeed[]
+  ) => Promise<void>;
   isLoading?: boolean;
+  // Opt-in: render the inline Volunteer Needs section (admin org form only).
+  showVolunteerNeeds?: boolean;
+  initialVolunteerNeeds?: VolunteerNeed[];
 }
 
 // Normalize legacy/import time formats into HH:MM that <input type="time"> accepts.
@@ -61,7 +75,13 @@ function normalizeTimeValue(raw: unknown): string | undefined {
   return `${hh}:${hhmm[2]}`;
 }
 
-export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
+export function OrgForm({
+  organization,
+  onSubmit,
+  isLoading,
+  showVolunteerNeeds = false,
+  initialVolunteerNeeds = [],
+}: OrgFormProps) {
   const existingHours = Array.isArray(organization?.operating_hours)
     ? organization.operating_hours
     : [];
@@ -129,6 +149,12 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
     },
   });
 
+  // Needs staged for a not-yet-created org; handed to onSubmit so the parent
+  // can persist them once the org row (and its id) exists.
+  const [stagedNeeds, setStagedNeeds] = useState<StagedVolunteerNeed[]>([]);
+  const submitWithNeeds = (data: OrganizationFormValues): Promise<void> =>
+    onSubmit(data, organization ? undefined : stagedNeeds);
+
   const operatingHours = watch('operating_hours');
   const assistanceTypes = useAssistanceTypes();
   const donationTypes = useDonationTypes();
@@ -143,7 +169,7 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
       : townsList;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <form onSubmit={handleSubmit(submitWithNeeds)} className="space-y-8">
       {/* Basic Information */}
       <Card>
         <CardHeader>
@@ -645,6 +671,15 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Volunteer Needs (admin org form only) */}
+      {showVolunteerNeeds && (
+        <VolunteerNeedsSection
+          organizationId={organization?.id}
+          initialNeeds={initialVolunteerNeeds}
+          onStagedNeedsChange={setStagedNeeds}
+        />
+      )}
 
       {/* Submit */}
       <div className="flex justify-end gap-4">

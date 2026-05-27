@@ -35,8 +35,9 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { OrgForm } from '@/components/forms/OrgForm';
+import type { StagedVolunteerNeed } from '@/components/forms/VolunteerNeedsSection';
 import { OrganizationFormValues } from '@/lib/validations/schemas';
-import { Organization } from '@/types/database';
+import { Organization, VolunteerNeed } from '@/types/database';
 import { formatPhone, formatDate } from '@/lib/utils/formatters';
 import {
   createOrganizationAction,
@@ -48,11 +49,19 @@ import { ImportOrganizationsDialog } from './ImportOrganizationsDialog';
 
 interface OrganizationsClientProps {
   initialOrgs: Organization[];
+  initialNeeds: VolunteerNeed[];
 }
 
-export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
+export function OrganizationsClient({ initialOrgs, initialNeeds }: OrganizationsClientProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  const needsByOrg = initialNeeds.reduce<Map<string, VolunteerNeed[]>>((map, need) => {
+    const list = map.get(need.organization_id) ?? [];
+    list.push(need);
+    map.set(need.organization_id, list);
+    return map;
+  }, new Map());
 
   const [search, setSearch] = useState('');
   const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
@@ -67,10 +76,14 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
       org.town.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleFormSubmit = (data: OrganizationFormValues): Promise<void> => {
+  const handleFormSubmit = (
+    data: OrganizationFormValues,
+    volunteerNeeds?: StagedVolunteerNeed[]
+  ): Promise<void> => {
     return new Promise((resolve) => {
       startTransition(async () => {
         if (editingOrg) {
+          // Needs for an existing org are persisted inline by the section.
           const result = await updateOrganizationAction(editingOrg.id, data);
           if (!result.ok) {
             toast.error(result.error);
@@ -81,7 +94,13 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
             router.refresh();
           }
         } else {
-          const result = await createOrganizationAction(data);
+          // Drop the client-only localId before handing needs to the server.
+          const stagedNeeds = volunteerNeeds?.map((staged) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { localId, ...need } = staged;
+            return need;
+          });
+          const result = await createOrganizationAction(data, stagedNeeds);
           if (!result.ok) {
             toast.error(result.error);
           } else {
@@ -306,9 +325,12 @@ export function OrganizationsClient({ initialOrgs }: OrganizationsClientProps) {
             </DialogTitle>
           </DialogHeader>
           <OrgForm
+            key={editingOrg?.id ?? 'new'}
             organization={editingOrg || undefined}
             onSubmit={handleFormSubmit}
             isLoading={isPending}
+            showVolunteerNeeds
+            initialVolunteerNeeds={editingOrg ? needsByOrg.get(editingOrg.id) ?? [] : []}
           />
         </DialogContent>
       </Dialog>
