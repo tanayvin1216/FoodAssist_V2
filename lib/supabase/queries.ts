@@ -210,13 +210,32 @@ export async function getVolunteerNeeds(
   return data as VolunteerNeed[];
 }
 
+// Optional text fields arrive from the form as empty strings ('') when left
+// blank. `needed_date` maps to a Postgres DATE column, which rejects '' with
+// "invalid input syntax for type date". Coerce blanks to null so the row saves.
+const NULLABLE_NEED_FIELDS = [
+  'needed_date',
+  'time_commitment',
+  'contact_name',
+  'contact_email',
+  'contact_phone',
+] as const;
+
+function sanitizeVolunteerNeed<T extends Partial<VolunteerNeedFormData>>(data: T): T {
+  const cleaned = { ...data } as Record<string, unknown>;
+  for (const key of NULLABLE_NEED_FIELDS) {
+    if (cleaned[key] === '') cleaned[key] = null;
+  }
+  return cleaned as T;
+}
+
 export async function createVolunteerNeed(
   supabase: SupabaseClient,
   data: VolunteerNeedFormData
 ): Promise<VolunteerNeed> {
   const { data: need, error } = await supabase
     .from('volunteer_needs')
-    .insert(data)
+    .insert(sanitizeVolunteerNeed(data))
     .select()
     .single();
 
@@ -231,7 +250,7 @@ export async function updateVolunteerNeed(
 ): Promise<VolunteerNeed> {
   const { data: need, error } = await supabase
     .from('volunteer_needs')
-    .update(data)
+    .update(sanitizeVolunteerNeed(data))
     .eq('id', id)
     .select()
     .single();
