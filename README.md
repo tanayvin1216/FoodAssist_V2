@@ -52,43 +52,6 @@ For the Council and partner organizations (private admin dashboard + org portal)
 - [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) for forms and validation
 - Hosted on [Vercel](https://vercel.com/)
 
-## Running it locally
-
-You'll need [Node.js](https://nodejs.org/) 20 or newer and a [Supabase](https://supabase.com/) project.
-
-```bash
-git clone https://github.com/tanayvin1216/FoodAssist_V2.git
-cd FoodAssist_V2
-npm install
-```
-
-Copy the example environment file and fill in your Supabase keys:
-
-```bash
-cp .env.example .env.local
-```
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key   # server-side only — never expose this
-```
-
-Start the dev server:
-
-```bash
-npm run dev
-```
-
-The app runs at [localhost:3000](http://localhost:3000). Database migrations live in [`supabase/`](supabase/).
-
-Other scripts:
-
-```bash
-npm run build   # production build
-npm run start   # serve the production build
-npm run lint    # run eslint
-```
 
 ## Project layout
 
@@ -102,13 +65,11 @@ supabase/     database migrations
 types/        shared TypeScript types
 ```
 
-## Contributing
 
-This is a live tool for a real community, so help is genuinely welcome — bug reports, accessibility improvements, Spanish translations, or new features. Open an [issue](https://github.com/tanayvin1216/FoodAssist_V2/issues) or send a pull request.
 
 ## Contact
 
-- **Live site** — [foodassist-v2-two.vercel.app](https://foodassist-v2-two.vercel.app)
+- **Live site** — [www.carteretfoodandhealthcouncil.org](https://www.carteretfoodandhealthcouncil.org/)
 - **Issues** — [github.com/tanayvin1216/FoodAssist_V2/issues](https://github.com/tanayvin1216/FoodAssist_V2/issues)
 - **Author** — [@tanayvin1216](https://github.com/tanayvin1216) · [Vinaykya27T@ncssm.edu](mailto:Vinaykya27T@ncssm.edu)
 
