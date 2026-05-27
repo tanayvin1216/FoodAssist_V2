@@ -48,11 +48,19 @@ export function formatOperatingHours(hours: OperatingHours[]): string {
   const openDays = hours.filter((h) => !h.is_closed);
   if (openDays.length === 0) return 'Closed';
 
-  // Check if all open days have the same hours
+  // Check if all open days have the same hours (including the 24-hour state)
   const firstDay = openDays[0];
   const allSameHours = openDays.every(
-    (h) => h.open_time === firstDay.open_time && h.close_time === firstDay.close_time
+    (h) =>
+      Boolean(h.is_24h) === Boolean(firstDay.is_24h) &&
+      h.open_time === firstDay.open_time &&
+      h.close_time === firstDay.close_time
   );
+
+  if (allSameHours && firstDay.is_24h) {
+    const dayList = openDays.map((h) => DAY_ABBREVIATIONS[h.day]).join(', ');
+    return `${dayList}: Open 24 hours`;
+  }
 
   if (allSameHours && firstDay.open_time && firstDay.close_time) {
     const dayList = openDays.map((h) => DAY_ABBREVIATIONS[h.day]).join(', ');
@@ -62,6 +70,9 @@ export function formatOperatingHours(hours: OperatingHours[]): string {
   // Group consecutive days with same hours
   return openDays
     .map((h) => {
+      if (h.is_24h) {
+        return `${DAY_ABBREVIATIONS[h.day]}: Open 24 hours`;
+      }
       if (!h.open_time || !h.close_time) {
         return `${DAY_ABBREVIATIONS[h.day]}: Hours vary`;
       }
@@ -121,6 +132,10 @@ export function getTodayHours(hours: OperatingHours[]): string {
     return 'Closed today';
   }
 
+  if (todayHours.is_24h) {
+    return 'Open 24 hours today';
+  }
+
   if (todayHours.open_time && todayHours.close_time) {
     return `Today: ${formatTime(todayHours.open_time)} - ${formatTime(todayHours.close_time)}`;
   }
@@ -167,6 +182,7 @@ export function isOpenNow(hours: OperatingHours[]): boolean {
   const todayHours = hours.find((h) => h.day === today);
 
   if (!todayHours || todayHours.is_closed) return false;
+  if (todayHours.is_24h) return true; // open around the clock
   if (!todayHours.open_time || !todayHours.close_time) return true; // Assume open if no specific times
 
   const currentTime = now.getHours() * 60 + now.getMinutes();

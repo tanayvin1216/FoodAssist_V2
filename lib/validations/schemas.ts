@@ -33,18 +33,21 @@ export const operatingHoursSchema = z.object({
   open_time: z.string().optional(),
   close_time: z.string().optional(),
   is_closed: z.boolean(),
+  is_24h: z.boolean().optional(),
 })
   .refine(
     (data) => {
-      if (data.is_closed) return true;
+      // "Closed" and "Open 24 hours" are both complete states on their own —
+      // neither needs open/close times.
+      if (data.is_closed || data.is_24h) return true;
       if (!data.open_time || !data.close_time) return false;
       return TIME_PATTERN.test(data.open_time) && TIME_PATTERN.test(data.close_time);
     },
-    { message: 'Enter both opening and closing times, or check Closed' }
+    { message: 'Enter both opening and closing times, or check Closed / Open 24 hours' }
   )
   .refine(
     (data) => {
-      if (data.is_closed) return true;
+      if (data.is_closed || data.is_24h) return true;
       if (!data.open_time || !data.close_time) return true; // covered by previous refine
       return data.open_time < data.close_time;
     },

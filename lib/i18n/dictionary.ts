@@ -69,6 +69,7 @@ export type MessageKey =
   | 'org.facebook'
   | 'org.getDirections'
   | 'org.dayClosed'
+  | 'org.day24h'
   // Volunteers page
   | 'vol.headline'
   | 'vol.subtitle'
@@ -167,6 +168,7 @@ export const dictionary: Record<Locale, MessageCatalog> = {
     'org.facebook': 'Facebook',
     'org.getDirections': 'Get directions',
     'org.dayClosed': 'Closed',
+    'org.day24h': 'Open 24 hours',
 
     'vol.headline': 'Volunteer Opportunities',
     'vol.subtitle':
@@ -266,6 +268,7 @@ export const dictionary: Record<Locale, MessageCatalog> = {
     'org.facebook': 'Facebook',
     'org.getDirections': 'Cómo llegar',
     'org.dayClosed': 'Cerrado',
+    'org.day24h': 'Abierto 24 horas',
 
     'vol.headline': 'Oportunidades de voluntariado',
     'vol.subtitle':

@@ -70,14 +70,17 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
     if (existing) {
       const open = normalizeTimeValue(existing.open_time);
       const close = normalizeTimeValue(existing.close_time);
+      const is24h = existing.is_24h ?? false;
       // If the row claims it's open but stored times are missing/malformed,
       // fall back to defaults so the user can simply correct them in place.
-      const isClosed = existing.is_closed || (!open && !close);
+      // A 24-hour day is "open" even without stored times.
+      const isClosed = existing.is_closed || (!is24h && !open && !close);
       return {
         day,
-        open_time: open ?? (isClosed ? undefined : '09:00'),
-        close_time: close ?? (isClosed ? undefined : '17:00'),
+        open_time: open ?? (isClosed || is24h ? undefined : '09:00'),
+        close_time: close ?? (isClosed || is24h ? undefined : '17:00'),
         is_closed: isClosed,
+        is_24h: is24h,
       };
     }
     return {
@@ -85,6 +88,7 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
       open_time: '09:00',
       close_time: '17:00',
       is_closed: day === 'saturday' || day === 'sunday',
+      is_24h: false,
     };
   });
 
@@ -415,20 +419,42 @@ export function OrgForm({ organization, onSubmit, isLoading }: OrgFormProps) {
                   )}
                 />
                 {!operatingHours?.[index]?.is_closed && (
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="time"
-                      className="w-32"
-                      {...register(`operating_hours.${index}.open_time`)}
-                    />
-                    <span className="text-gray-500">to</span>
-                    <Input
-                      type="time"
-                      className="w-32"
-                      {...register(`operating_hours.${index}.close_time`)}
-                    />
-                  </div>
+                  <Controller
+                    name={`operating_hours.${index}.is_24h`}
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`open24-${day}`}
+                          checked={field.value ?? false}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label
+                          htmlFor={`open24-${day}`}
+                          className="text-sm font-normal"
+                        >
+                          Open 24 hours
+                        </Label>
+                      </div>
+                    )}
+                  />
                 )}
+                {!operatingHours?.[index]?.is_closed &&
+                  !operatingHours?.[index]?.is_24h && (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="time"
+                        className="w-32"
+                        {...register(`operating_hours.${index}.open_time`)}
+                      />
+                      <span className="text-gray-500">to</span>
+                      <Input
+                        type="time"
+                        className="w-32"
+                        {...register(`operating_hours.${index}.close_time`)}
+                      />
+                    </div>
+                  )}
                 {errors.operating_hours?.[index] && (
                   <p className="text-sm text-red-600 w-full">
                     {errors.operating_hours[index]?.message ||

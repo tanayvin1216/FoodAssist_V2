@@ -203,7 +203,9 @@ export default async function OrganizationPage({ params }: OrganizationPageProps
                   <span className={`text-sm ${hours.is_closed ? 'text-muted-text' : 'text-body-text'}`}>
                     {hours.is_closed
                       ? t('org.dayClosed')
-                      : `${formatTime(hours.open_time ?? '')} - ${formatTime(hours.close_time ?? '')}`}
+                      : hours.is_24h
+                        ? t('org.day24h')
+                        : `${formatTime(hours.open_time ?? '')} - ${formatTime(hours.close_time ?? '')}`}
                   </span>
                 </div>
               ))}

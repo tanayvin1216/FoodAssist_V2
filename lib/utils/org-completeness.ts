@@ -70,7 +70,9 @@ const FIELDS: FieldDef[] = [
     weight: 20,
     test: (o) =>
       Array.isArray(o.operating_hours) &&
-      o.operating_hours.some((h) => !h.is_closed && hasText(h.open_time) && hasText(h.close_time)),
+      o.operating_hours.some(
+        (h) => !h.is_closed && (h.is_24h || (hasText(h.open_time) && hasText(h.close_time)))
+      ),
   },
 
   // RECOMMENDED — weight 6 each, five of them => 30 pts

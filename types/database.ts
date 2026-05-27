@@ -48,6 +48,9 @@ export interface OperatingHours {
   open_time?: string;
   close_time?: string;
   is_closed: boolean;
+  // Open around the clock (e.g. a 24-hour pantry). When true, open_time /
+  // close_time are ignored and the day renders as "Open 24 hours".
+  is_24h?: boolean;
 }
 
 export interface StorageCapacity {
