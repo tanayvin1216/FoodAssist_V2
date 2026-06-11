@@ -175,6 +175,15 @@ export type VolunteerNeedFormData = Omit<
 >;
 
 // Filter types for directory search
+export interface PdfArchive {
+  id: string;
+  version: number;
+  storage_path: string;
+  org_count: number;
+  generated_by: string | null;
+  generated_at: string;
+}
+
 export interface DirectoryFilters {
   search?: string;
   town?: string;

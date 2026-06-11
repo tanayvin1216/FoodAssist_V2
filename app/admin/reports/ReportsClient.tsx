@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   FileText,
   Download,
@@ -10,6 +10,8 @@ import {
   MapPin,
   History,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import type { PdfArchive } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -66,30 +68,7 @@ export interface ReportsData {
   siteName: string;
   siteTagline: string;
   categoryLabels: Record<string, string>;
-}
-
-// ---- PDF version history ----
-
-const PDF_HISTORY_KEY = 'foodassist_pdf_history';
-const MAX_HISTORY = 20;
-
-interface PdfHistoryEntry {
-  version: number;
-  generatedAt: string;
-  orgCount: number;
-}
-
-function loadPdfHistory(): PdfHistoryEntry[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    return JSON.parse(localStorage.getItem(PDF_HISTORY_KEY) ?? '[]');
-  } catch {
-    return [];
-  }
-}
-
-function savePdfHistory(entries: PdfHistoryEntry[]) {
-  localStorage.setItem(PDF_HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
+  initialArchives: PdfArchive[];
 }
 
 // ---- CSV helpers ----
@@ -158,11 +137,8 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 export default function ReportsClient({ data }: { data: ReportsData }) {
   const [includeInactive, setIncludeInactive] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [pdfHistory, setPdfHistory] = useState<PdfHistoryEntry[]>([]);
-
-  useEffect(() => {
-    setPdfHistory(loadPdfHistory());
-  }, []);
+  const [downloadingVersion, setDownloadingVersion] = useState<number | null>(null);
+  const [pdfArchives, setPdfArchives] = useState<PdfArchive[]>(data.initialArchives);
 
   const {
     allOrganizations,
@@ -181,6 +157,7 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
     siteTagline,
     categoryLabels,
   } = data;
+  // initialArchives used only to seed pdfArchives state above
 
   const maxTownCount = Math.max(...orgsByTown.map((t) => t.totalCount), 1);
   const maxTypeCount = Math.max(...orgsByType.map((t) => t.count), 1);
@@ -239,8 +216,6 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
   async function handleDownloadPdf() {
     setIsGeneratingPdf(true);
     try {
-      // Dynamic-import the PDF deps so the heavy react-pdf bundle never lands
-      // on the Reports page's initial download.
       const [{ pdf }, { DirectoryPdfDocument }] = await Promise.all([
         import('@react-pdf/renderer'),
         import('@/components/admin/DirectoryPdfDocument'),
@@ -251,8 +226,7 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
         day: 'numeric',
         year: 'numeric',
       });
-      const existing = loadPdfHistory();
-      const nextVersion = (existing[0]?.version ?? 0) + 1;
+      const nextVersion = (pdfArchives[0]?.version ?? 0) + 1;
       const blob = await pdf(
         <DirectoryPdfDocument
           title={`${siteName} Directory`}
@@ -263,21 +237,57 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
           categoryLabels={categoryLabels}
         />
       ).toBlob();
+
+      const dateStr = new Date().toISOString().split('T')[0];
+      const storagePath = `directory-v${nextVersion}-${dateStr}.pdf`;
+      const supabase = createClient();
+
+      const { error: uploadError } = await supabase.storage
+        .from('pdf-archives')
+        .upload(storagePath, blob, { contentType: 'application/pdf', upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { data: archive, error: dbError } = await supabase
+        .from('pdf_archives')
+        .insert({ version: nextVersion, storage_path: storagePath, org_count: activeOrgs.length })
+        .select()
+        .single();
+      if (dbError) throw dbError;
+
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `food-assistance-directory-v${nextVersion}-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.download = storagePath;
       a.click();
       URL.revokeObjectURL(url);
-      const updated = [{ version: nextVersion, generatedAt, orgCount: activeOrgs.length }, ...existing];
-      savePdfHistory(updated);
-      setPdfHistory(updated);
-      toast.success(`Directory PDF v${nextVersion} downloaded`);
+
+      setPdfArchives([archive as PdfArchive, ...pdfArchives]);
+      toast.success(`Directory PDF v${nextVersion} saved and downloaded`);
     } catch (error) {
       console.error('[reports] PDF generation failed:', error);
       toast.error('Could not generate PDF. Please try again.');
     } finally {
       setIsGeneratingPdf(false);
+    }
+  }
+
+  async function handleRedownload(entry: PdfArchive) {
+    setDownloadingVersion(entry.version);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.storage
+        .from('pdf-archives')
+        .createSignedUrl(entry.storage_path, 60);
+      if (error || !data?.signedUrl) throw error ?? new Error('No signed URL');
+      const a = document.createElement('a');
+      a.href = data.signedUrl;
+      a.download = entry.storage_path;
+      a.click();
+      toast.success(`Downloading v${entry.version}…`);
+    } catch {
+      toast.error('Could not retrieve this PDF. The file may have been deleted.');
+    } finally {
+      setDownloadingVersion(null);
     }
   }
 
@@ -562,7 +572,7 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
       </section>
 
       {/* PDF version history */}
-      {pdfHistory.length > 0 && (
+      {pdfArchives.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3">
             <History className="w-3.5 h-3.5" style={{ color: '#8C7E72' }} />
@@ -574,8 +584,8 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
             className="rounded-lg border divide-y"
             style={{ borderColor: '#C4B8AD', backgroundColor: '#FFFFFF' }}
           >
-            {pdfHistory.map((entry) => (
-              <div key={entry.version} className="flex items-center justify-between px-4 py-3">
+            {pdfArchives.map((entry) => (
+              <div key={entry.id} className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3">
                   <span
                     className="text-xs font-medium px-2 py-0.5 rounded"
@@ -583,13 +593,32 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
                   >
                     v{entry.version}
                   </span>
-                  <span className="text-sm" style={{ color: '#1B2D3A' }}>
-                    {entry.generatedAt}
-                  </span>
+                  <div>
+                    <span className="text-sm" style={{ color: '#1B2D3A' }}>
+                      {new Date(entry.generated_at).toLocaleString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                    <span className="text-xs ml-2" style={{ color: '#8C7E72' }}>
+                      {entry.org_count} org{entry.org_count !== 1 ? 's' : ''}
+                    </span>
+                  </div>
                 </div>
-                <span className="text-xs" style={{ color: '#8C7E72' }}>
-                  {entry.orgCount} org{entry.orgCount !== 1 ? 's' : ''}
-                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleRedownload(entry)}
+                  disabled={downloadingVersion === entry.version}
+                  className="shrink-0 text-xs gap-1.5"
+                  style={{ borderColor: '#C4B8AD', color: '#4A5568' }}
+                >
+                  <Download className="w-3 h-3" />
+                  {downloadingVersion === entry.version ? 'Preparing…' : 'Download'}
+                </Button>
               </div>
             ))}
           </div>

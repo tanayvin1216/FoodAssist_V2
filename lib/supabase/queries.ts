@@ -5,6 +5,7 @@ import {
   CouncilDonation,
   VolunteerNeed,
   Profile,
+  PdfArchive,
   DirectoryFilters,
   OrganizationFormData,
   CouncilDonationFormData,
@@ -663,4 +664,19 @@ export async function getAnalyticsSummary(
     dailyViews,
     recentReferrers,
   };
+}
+
+// ============== PDF Archives ==============
+
+export async function getPdfArchives(supabase: SupabaseClient): Promise<PdfArchive[]> {
+  const { data, error } = await supabase
+    .from('pdf_archives')
+    .select('*')
+    .order('version', { ascending: false })
+    .limit(20);
+  if (error) {
+    console.error('[pdf-archives] fetch failed:', error.message);
+    return [];
+  }
+  return (data ?? []) as PdfArchive[];
 }

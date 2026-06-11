@@ -5,6 +5,7 @@ import {
   getCouncilDonations,
   getVolunteerNeeds,
   getSiteSettings,
+  getPdfArchives,
 } from '@/lib/supabase/queries';
 import ReportsClient, {
   type OrgsByTown,
@@ -23,12 +24,13 @@ export default async function AdminReportsPage() {
 
   const supabase = await createClient();
 
-  const [allOrganizations, allDonations, allVolunteerNeeds, settings] =
+  const [allOrganizations, allDonations, allVolunteerNeeds, settings, initialArchives] =
     await Promise.all([
       getOrganizations(supabase, undefined, false),
       getCouncilDonations(supabase),
       getVolunteerNeeds(supabase, undefined, false),
       getSiteSettings(supabase),
+      getPdfArchives(supabase),
     ]);
   const categoryLabels = buildCategoryLabelMap(settings.categories);
 
@@ -147,6 +149,7 @@ export default async function AdminReportsPage() {
     siteName: settings.branding.siteName,
     siteTagline: settings.branding.siteTagline,
     categoryLabels,
+    initialArchives,
   };
 
   return <ReportsClient data={reportData} />;
