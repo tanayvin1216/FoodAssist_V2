@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FileText,
   Download,
@@ -8,6 +8,7 @@ import {
   DollarSign,
   HandHeart,
   MapPin,
+  History,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -65,6 +66,30 @@ export interface ReportsData {
   siteName: string;
   siteTagline: string;
   categoryLabels: Record<string, string>;
+}
+
+// ---- PDF version history ----
+
+const PDF_HISTORY_KEY = 'foodassist_pdf_history';
+const MAX_HISTORY = 20;
+
+interface PdfHistoryEntry {
+  version: number;
+  generatedAt: string;
+  orgCount: number;
+}
+
+function loadPdfHistory(): PdfHistoryEntry[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(PDF_HISTORY_KEY) ?? '[]');
+  } catch {
+    return [];
+  }
+}
+
+function savePdfHistory(entries: PdfHistoryEntry[]) {
+  localStorage.setItem(PDF_HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
 }
 
 // ---- CSV helpers ----
@@ -133,6 +158,11 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 export default function ReportsClient({ data }: { data: ReportsData }) {
   const [includeInactive, setIncludeInactive] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [pdfHistory, setPdfHistory] = useState<PdfHistoryEntry[]>([]);
+
+  useEffect(() => {
+    setPdfHistory(loadPdfHistory());
+  }, []);
 
   const {
     allOrganizations,
@@ -221,11 +251,14 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
         day: 'numeric',
         year: 'numeric',
       });
+      const existing = loadPdfHistory();
+      const nextVersion = (existing[0]?.version ?? 0) + 1;
       const blob = await pdf(
         <DirectoryPdfDocument
           title={`${siteName} Directory`}
           subtitle={siteTagline}
           generatedAt={generatedAt}
+          version={nextVersion}
           organizations={activeOrgs}
           categoryLabels={categoryLabels}
         />
@@ -233,10 +266,13 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `food-assistance-directory-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.download = `food-assistance-directory-v${nextVersion}-${new Date().toISOString().split('T')[0]}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Directory PDF downloaded');
+      const updated = [{ version: nextVersion, generatedAt, orgCount: activeOrgs.length }, ...existing];
+      savePdfHistory(updated);
+      setPdfHistory(updated);
+      toast.success(`Directory PDF v${nextVersion} downloaded`);
     } catch (error) {
       console.error('[reports] PDF generation failed:', error);
       toast.error('Could not generate PDF. Please try again.');
@@ -524,6 +560,41 @@ export default function ReportsClient({ data }: { data: ReportsData }) {
           </Button>
         </div>
       </section>
+
+      {/* PDF version history */}
+      {pdfHistory.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <History className="w-3.5 h-3.5" style={{ color: '#8C7E72' }} />
+            <h2 className="text-xs uppercase tracking-wider" style={{ color: '#8C7E72' }}>
+              PDF Version History
+            </h2>
+          </div>
+          <div
+            className="rounded-lg border divide-y"
+            style={{ borderColor: '#C4B8AD', backgroundColor: '#FFFFFF' }}
+          >
+            {pdfHistory.map((entry) => (
+              <div key={entry.version} className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="text-xs font-medium px-2 py-0.5 rounded"
+                    style={{ backgroundColor: '#E8F4F3', color: '#0D7C8F' }}
+                  >
+                    v{entry.version}
+                  </span>
+                  <span className="text-sm" style={{ color: '#1B2D3A' }}>
+                    {entry.generatedAt}
+                  </span>
+                </div>
+                <span className="text-xs" style={{ color: '#8C7E72' }}>
+                  {entry.orgCount} org{entry.orgCount !== 1 ? 's' : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

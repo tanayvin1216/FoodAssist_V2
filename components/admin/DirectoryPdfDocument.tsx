@@ -15,6 +15,7 @@ interface DirectoryPdfProps {
   title: string;
   subtitle?: string;
   generatedAt: string;
+  version: number;
   organizations: Organization[];
   categoryLabels: Record<string, string>;
 }
@@ -194,6 +195,7 @@ export function DirectoryPdfDocument({
   title,
   subtitle,
   generatedAt,
+  version,
   organizations,
   categoryLabels,
 }: DirectoryPdfProps) {
@@ -206,7 +208,7 @@ export function DirectoryPdfDocument({
           <Text style={styles.title}>{title}</Text>
           {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           <Text style={styles.generatedAt}>
-            Generated {generatedAt} · {organizations.length} active organizations
+            Rev. {version} · Generated {generatedAt} · {organizations.length} active organizations
           </Text>
         </View>
 
