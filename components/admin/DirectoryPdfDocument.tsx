@@ -32,116 +32,116 @@ const PALETTE = {
 
 const styles = StyleSheet.create({
   page: {
-    paddingTop: 40,
-    paddingBottom: 56,
-    paddingHorizontal: 40,
-    fontSize: 10,
+    paddingTop: 20,
+    paddingBottom: 22,
+    paddingHorizontal: 20,
+    fontSize: 7,
     fontFamily: 'Helvetica',
     color: PALETTE.body,
-    lineHeight: 1.35,
+    lineHeight: 1.2,
   },
   titleBlock: {
-    marginBottom: 14,
-    borderBottomWidth: 2,
+    marginBottom: 6,
+    borderBottomWidth: 1.5,
     borderBottomColor: PALETTE.ocean,
-    paddingBottom: 10,
+    paddingBottom: 4,
   },
   title: {
-    fontSize: 22,
+    fontSize: 15,
     fontFamily: 'Times-Roman',
     color: PALETTE.ink,
-    marginBottom: 2,
-  },
-  subtitle: {
-    fontSize: 10,
-    color: PALETTE.muted,
-    marginBottom: 2,
-  },
-  generatedAt: {
-    fontSize: 9,
-    color: PALETTE.muted,
-  },
-  townBlock: {
-    marginTop: 12,
-  },
-  townHeader: {
-    fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
-    color: PALETTE.ocean,
-    letterSpacing: 1.2,
-    marginBottom: 6,
-    paddingBottom: 3,
-    borderBottomWidth: 1,
-    borderBottomColor: PALETTE.shoreline,
-  },
-  orgBlock: {
-    marginBottom: 8,
-    padding: 8,
-    backgroundColor: PALETTE.sand,
-    borderLeftWidth: 3,
-    borderLeftColor: PALETTE.ocean,
-  },
-  orgName: {
-    fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
-    color: PALETTE.ink,
-    marginBottom: 3,
-  },
-  addressLine: {
-    fontSize: 9,
-    color: PALETTE.body,
+    lineHeight: 1.2,
     marginBottom: 4,
   },
-  fieldLine: {
-    fontSize: 9,
-    color: PALETTE.body,
-    marginBottom: 2,
-  },
-  labelText: {
-    fontFamily: 'Helvetica-Bold',
+  subtitle: {
+    fontSize: 8,
     color: PALETTE.muted,
+    marginBottom: 1,
+  },
+  generatedAt: {
+    fontSize: 7,
+    color: PALETTE.muted,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  townHeader: {
+    width: '100%',
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PALETTE.ocean,
+    letterSpacing: 0.8,
+    marginTop: 5,
+    marginBottom: 3,
+    paddingBottom: 1.5,
+    borderBottomWidth: 0.75,
+    borderBottomColor: PALETTE.shoreline,
+  },
+  card: {
+    width: '33.33%',
+    paddingRight: 6,
+    marginBottom: 5,
+  },
+  cardInner: {
+    borderLeftWidth: 2,
+    borderLeftColor: PALETTE.ocean,
+    backgroundColor: PALETTE.sand,
+    paddingLeft: 4,
+    paddingRight: 3,
+    paddingVertical: 3,
+  },
+  orgName: {
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PALETTE.ink,
+    marginBottom: 1.5,
+  },
+  fieldLine: {
+    fontSize: 6.8,
+    color: PALETTE.body,
+    marginBottom: 1,
   },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 4,
-    marginBottom: 2,
+    marginTop: 2,
   },
   tag: {
-    fontSize: 8,
+    fontSize: 6,
     color: PALETTE.ocean,
-    borderWidth: 1,
+    borderWidth: 0.75,
     borderColor: PALETTE.ocean,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
+    paddingHorizontal: 2.5,
+    paddingVertical: 0.5,
     borderRadius: 2,
-    marginRight: 4,
-    marginBottom: 3,
+    marginRight: 2.5,
+    marginBottom: 1.5,
   },
   spanishTag: {
-    fontSize: 8,
+    fontSize: 6,
     color: PALETTE.ink,
     backgroundColor: PALETTE.seafoam,
-    borderWidth: 1,
+    borderWidth: 0.75,
     borderColor: PALETTE.seafoam,
-    paddingHorizontal: 4,
-    paddingVertical: 1,
+    paddingHorizontal: 2.5,
+    paddingVertical: 0.5,
     borderRadius: 2,
-    marginRight: 4,
-    marginBottom: 3,
+    marginRight: 2.5,
+    marginBottom: 1.5,
   },
   hoursLine: {
-    fontSize: 9,
+    fontSize: 6.8,
     color: PALETTE.muted,
-    marginTop: 3,
+    marginTop: 1.5,
     fontFamily: 'Helvetica-Oblique',
   },
   pageNumber: {
     position: 'absolute',
-    fontSize: 9,
-    bottom: 24,
-    left: 40,
-    right: 40,
+    fontSize: 7,
+    bottom: 12,
+    left: 20,
+    right: 20,
     textAlign: 'center',
     color: PALETTE.muted,
   },
@@ -191,6 +191,43 @@ function groupByTown(orgs: Organization[]): Array<[string, Organization[]]> {
     ]);
 }
 
+function OrgCard({
+  org,
+  categoryLabels,
+}: {
+  org: Organization;
+  categoryLabels: Record<string, string>;
+}) {
+  return (
+    <View style={styles.card} wrap={false}>
+      <View style={styles.cardInner}>
+        <Text style={styles.orgName}>{org.name}</Text>
+
+        <Text style={styles.fieldLine}>{buildAddressLine(org)}</Text>
+
+        {org.phone && (
+          <Text style={styles.fieldLine}>{formatPhone(org.phone)}</Text>
+        )}
+
+        {org.assistance_types.length > 0 && (
+          <View style={styles.tagsRow}>
+            {org.assistance_types.map((type) => (
+              <Text key={type} style={styles.tag}>
+                {resolveCategoryLabel(type, categoryLabels)}
+              </Text>
+            ))}
+            {org.spanish_available && (
+              <Text style={styles.spanishTag}>Spanish</Text>
+            )}
+          </View>
+        )}
+
+        <Text style={styles.hoursLine}>{summarizeHours(org.operating_hours)}</Text>
+      </View>
+    </View>
+  );
+}
+
 export function DirectoryPdfDocument({
   title,
   subtitle,
@@ -200,6 +237,15 @@ export function DirectoryPdfDocument({
   categoryLabels,
 }: DirectoryPdfProps) {
   const grouped = groupByTown(organizations);
+
+  const gridItems = grouped.flatMap(([town, orgs]) => [
+    <Text key={`town-${town}`} style={styles.townHeader}>
+      {town.toUpperCase()}
+    </Text>,
+    ...orgs.map((org) => (
+      <OrgCard key={org.id} org={org} categoryLabels={categoryLabels} />
+    )),
+  ]);
 
   return (
     <Document title={title} author="Carteret County Food & Health Council">
@@ -212,55 +258,7 @@ export function DirectoryPdfDocument({
           </Text>
         </View>
 
-        {grouped.map(([town, orgs]) => (
-          <View key={town} style={styles.townBlock}>
-            <Text style={styles.townHeader}>{town.toUpperCase()}</Text>
-            {orgs.map((org) => (
-              <View key={org.id} style={styles.orgBlock} wrap={false}>
-                <Text style={styles.orgName}>{org.name}</Text>
-
-                <Text style={styles.addressLine}>{buildAddressLine(org)}</Text>
-
-                {org.phone && (
-                  <Text style={styles.fieldLine}>
-                    <Text style={styles.labelText}>Phone:</Text>{' '}
-                    {formatPhone(org.phone)}
-                  </Text>
-                )}
-
-                {org.email && (
-                  <Text style={styles.fieldLine}>
-                    <Text style={styles.labelText}>Email:</Text> {org.email}
-                  </Text>
-                )}
-
-                {org.contact_name && (
-                  <Text style={styles.fieldLine}>
-                    <Text style={styles.labelText}>Contact:</Text>{' '}
-                    {org.contact_name}
-                  </Text>
-                )}
-
-                {org.assistance_types.length > 0 && (
-                  <View style={styles.tagsRow}>
-                    {org.assistance_types.map((type) => (
-                      <Text key={type} style={styles.tag}>
-                        {resolveCategoryLabel(type, categoryLabels)}
-                      </Text>
-                    ))}
-                    {org.spanish_available && (
-                      <Text style={styles.spanishTag}>Spanish</Text>
-                    )}
-                  </View>
-                )}
-
-                <Text style={styles.hoursLine}>
-                  {summarizeHours(org.operating_hours)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ))}
+        <View style={styles.grid}>{gridItems}</View>
 
         <Text
           style={styles.pageNumber}
