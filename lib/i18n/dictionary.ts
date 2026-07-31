@@ -36,6 +36,11 @@ export type MessageKey =
   | 'hero.stat.locations'
   | 'hero.stat.towns'
   | 'hero.stat.freeServices'
+  | 'hero.pdf.label'
+  | 'hero.pdf.english'
+  | 'hero.pdf.spanish'
+  | 'hero.pdf.generating'
+  | 'hero.pdf.error'
   // Directory controls
   | 'dir.search.placeholder'
   | 'dir.view.card'
@@ -135,6 +140,11 @@ export const dictionary: Record<Locale, MessageCatalog> = {
     'hero.stat.locations': 'locations',
     'hero.stat.towns': 'towns',
     'hero.stat.freeServices': 'Free services',
+    'hero.pdf.label': 'Printable directory:',
+    'hero.pdf.english': 'English PDF',
+    'hero.pdf.spanish': 'Spanish PDF',
+    'hero.pdf.generating': 'Preparing…',
+    'hero.pdf.error': 'Could not create the PDF. Please try again.',
 
     'dir.search.placeholder': 'Search by name, town, or service…',
     'dir.view.card': 'Card',
@@ -234,6 +244,11 @@ export const dictionary: Record<Locale, MessageCatalog> = {
     'hero.stat.locations': 'ubicaciones',
     'hero.stat.towns': 'pueblos',
     'hero.stat.freeServices': 'Servicios gratuitos',
+    'hero.pdf.label': 'Directorio imprimible:',
+    'hero.pdf.english': 'PDF en inglés',
+    'hero.pdf.spanish': 'PDF en español',
+    'hero.pdf.generating': 'Preparando…',
+    'hero.pdf.error': 'No se pudo crear el PDF. Inténtelo de nuevo.',
 
     'dir.search.placeholder': 'Buscar por nombre, pueblo o servicio…',
     'dir.view.card': 'Tarjeta',

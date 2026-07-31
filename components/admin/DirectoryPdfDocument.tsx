@@ -9,6 +9,7 @@ import {
   StyleSheet,
 } from '@react-pdf/renderer';
 import type { Organization } from '@/types/database';
+import type { Locale } from '@/lib/i18n/dictionary';
 import { formatPhone } from '@/lib/utils/formatters';
 import { resolveCategoryLabel } from '@/lib/utils/category-labels';
 import { CFHC_LOGO_DATA_URI } from '@/lib/assets/cfhc-logo';
@@ -20,9 +21,69 @@ interface DirectoryPdfProps {
   title: string;
   subtitle?: string;
   generatedAt: string;
-  version: number;
+  /** Archive revision number. Omitted for on-demand public downloads. */
+  version?: number;
   organizations: Organization[];
   categoryLabels: Record<string, string>;
+  locale?: Locale;
+}
+
+/**
+ * Static PDF chrome, translated. Organization data itself is printed as the
+ * admin entered it — we do not auto-translate user-submitted content.
+ */
+const PDF_STRINGS: Record<Locale, Record<string, string>> = {
+  en: {
+    revision: 'Rev.',
+    generated: 'Generated',
+    activeOrgs: 'active organizations',
+    scanShort: 'Scan for the full list',
+    scanLong: 'Scan for the full community resources directory',
+    unspecifiedTown: 'Unspecified',
+    spanishTag: 'Spanish',
+    hoursUnlisted: 'Hours not listed',
+    openEveryDay: 'Open every day',
+    open: 'Open',
+  },
+  es: {
+    revision: 'Rev.',
+    generated: 'Generado el',
+    activeOrgs: 'organizaciones activas',
+    scanShort: 'Escanee para ver la lista completa',
+    scanLong: 'Escanee para ver el directorio completo de recursos comunitarios',
+    unspecifiedTown: 'Sin especificar',
+    spanishTag: 'Español',
+    hoursUnlisted: 'Horario no indicado',
+    openEveryDay: 'Abierto todos los días',
+    open: 'Abierto',
+  },
+};
+
+const DAY_LABELS: Record<Locale, Record<string, string>> = {
+  en: {
+    monday: 'Mon',
+    tuesday: 'Tue',
+    wednesday: 'Wed',
+    thursday: 'Thu',
+    friday: 'Fri',
+    saturday: 'Sat',
+    sunday: 'Sun',
+  },
+  es: {
+    monday: 'Lun',
+    tuesday: 'Mar',
+    wednesday: 'Mié',
+    thursday: 'Jue',
+    friday: 'Vie',
+    saturday: 'Sáb',
+    sunday: 'Dom',
+  },
+};
+
+function pageLabel(locale: Locale, pageNumber: number, totalPages: number): string {
+  return locale === 'es'
+    ? `Página ${pageNumber} de ${totalPages}`
+    : `Page ${pageNumber} of ${totalPages}`;
 }
 
 const PALETTE = {
@@ -257,26 +318,30 @@ const styles = StyleSheet.create({
   },
 });
 
-const DAY_ORDER: Array<{ key: string; label: string }> = [
-  { key: 'monday', label: 'Mon' },
-  { key: 'tuesday', label: 'Tue' },
-  { key: 'wednesday', label: 'Wed' },
-  { key: 'thursday', label: 'Thu' },
-  { key: 'friday', label: 'Fri' },
-  { key: 'saturday', label: 'Sat' },
-  { key: 'sunday', label: 'Sun' },
+const DAY_ORDER = [
+  'monday',
+  'tuesday',
+  'wednesday',
+  'thursday',
+  'friday',
+  'saturday',
+  'sunday',
 ];
 
-function summarizeHours(hours: Organization['operating_hours']): string {
-  if (!Array.isArray(hours) || hours.length === 0) return 'Hours not listed';
-  const open = DAY_ORDER.filter((d) =>
+function summarizeHours(
+  hours: Organization['operating_hours'],
+  locale: Locale
+): string {
+  const s = PDF_STRINGS[locale];
+  if (!Array.isArray(hours) || hours.length === 0) return s.hoursUnlisted;
+  const open = DAY_ORDER.filter((day) =>
     hours.some(
-      (h) => h.day === d.key && !h.is_closed && h.open_time && h.close_time
+      (h) => h.day === day && !h.is_closed && h.open_time && h.close_time
     )
-  ).map((d) => d.label);
-  if (open.length === 0) return 'Hours not listed';
-  if (open.length === 7) return 'Open every day';
-  return `Open ${open.join(', ')}`;
+  ).map((day) => DAY_LABELS[locale][day]);
+  if (open.length === 0) return s.hoursUnlisted;
+  if (open.length === 7) return s.openEveryDay;
+  return `${s.open} ${open.join(', ')}`;
 }
 
 function buildAddressLine(org: Organization): string {
@@ -286,10 +351,13 @@ function buildAddressLine(org: Organization): string {
   return parts.join(', ');
 }
 
-function groupByTown(orgs: Organization[]): Array<[string, Organization[]]> {
+function groupByTown(
+  orgs: Organization[],
+  unspecifiedLabel: string
+): Array<[string, Organization[]]> {
   const map = new Map<string, Organization[]>();
   for (const org of orgs) {
-    const town = org.town || 'Unspecified';
+    const town = org.town || unspecifiedLabel;
     if (!map.has(town)) map.set(town, []);
     map.get(town)!.push(org);
   }
@@ -304,9 +372,11 @@ function groupByTown(orgs: Organization[]): Array<[string, Organization[]]> {
 function OrgCard({
   org,
   categoryLabels,
+  locale,
 }: {
   org: Organization;
   categoryLabels: Record<string, string>;
+  locale: Locale;
 }) {
   return (
     <View style={styles.card} wrap={false}>
@@ -327,12 +397,14 @@ function OrgCard({
               </Text>
             ))}
             {org.spanish_available && (
-              <Text style={styles.spanishTag}>Spanish</Text>
+              <Text style={styles.spanishTag}>{PDF_STRINGS[locale].spanishTag}</Text>
             )}
           </View>
         )}
 
-        <Text style={styles.hoursLine}>{summarizeHours(org.operating_hours)}</Text>
+        <Text style={styles.hoursLine}>
+          {summarizeHours(org.operating_hours, locale)}
+        </Text>
       </View>
     </View>
   );
@@ -345,17 +417,32 @@ export function DirectoryPdfDocument({
   version,
   organizations,
   categoryLabels,
+  locale = 'en',
 }: DirectoryPdfProps) {
-  const grouped = groupByTown(organizations);
+  const s = PDF_STRINGS[locale];
+  const grouped = groupByTown(organizations, s.unspecifiedTown);
 
   const gridItems = grouped.flatMap(([town, orgs]) => [
     <Text key={`town-${town}`} style={styles.townHeader}>
       {town.toUpperCase()}
     </Text>,
     ...orgs.map((org) => (
-      <OrgCard key={org.id} org={org} categoryLabels={categoryLabels} />
+      <OrgCard
+        key={org.id}
+        org={org}
+        categoryLabels={categoryLabels}
+        locale={locale}
+      />
     )),
   ]);
+
+  const metaLine = [
+    version != null ? `${s.revision} ${version}` : null,
+    `${s.generated} ${generatedAt}`,
+    `${organizations.length} ${s.activeOrgs}`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <Document title={title} author="Carteret County Food & Health Council">
@@ -367,17 +454,13 @@ export function DirectoryPdfDocument({
             <View style={styles.headerText}>
               <Text style={styles.title}>{title}</Text>
               {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-              <Text style={styles.generatedAt}>
-                Rev. {version} · Generated {generatedAt} · {organizations.length} active organizations
-              </Text>
+              <Text style={styles.generatedAt}>{metaLine}</Text>
             </View>
             <View style={styles.headerScan}>
               {/* eslint-disable-next-line jsx-a11y/alt-text */}
               <Image src={CFHC_QR_DATA_URI} style={styles.headerQr} />
               <View style={styles.headerScanText}>
-                <Text style={styles.headerScanLabel}>
-                  Scan for the full list
-                </Text>
+                <Text style={styles.headerScanLabel}>{s.scanShort}</Text>
                 <Text style={styles.headerUrl}>{SITE_URL_LABEL}</Text>
               </View>
             </View>
@@ -390,9 +473,7 @@ export function DirectoryPdfDocument({
           {/* eslint-disable-next-line jsx-a11y/alt-text */}
           <Image src={CFHC_QR_DATA_URI} style={styles.endCtaQr} />
           <View style={styles.endCtaContent}>
-            <Text style={styles.endCtaHeading}>
-              Scan for the full community resources directory
-            </Text>
+            <Text style={styles.endCtaHeading}>{s.scanLong}</Text>
             <Text style={styles.endCtaUrl}>{SITE_URL_LABEL}</Text>
           </View>
           {/* eslint-disable-next-line jsx-a11y/alt-text */}
@@ -403,15 +484,13 @@ export function DirectoryPdfDocument({
           <View style={styles.footerScan}>
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image src={CFHC_QR_DATA_URI} style={styles.footerQr} />
-            <Text style={styles.footerCta}>
-              Scan for the full community resources directory
-            </Text>
+            <Text style={styles.footerCta}>{s.scanLong}</Text>
             <Text style={styles.footerUrl}>{SITE_URL_LABEL}</Text>
           </View>
           <Text
             style={styles.footerPage}
             render={({ pageNumber, totalPages }) =>
-              `Page ${pageNumber} of ${totalPages}`
+              pageLabel(locale, pageNumber, totalPages)
             }
           />
         </View>

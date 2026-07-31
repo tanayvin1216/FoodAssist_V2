@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Search, X, Phone, MapPin } from 'lucide-react';
 import { Organization } from '@/types/database';
 import { DirectoryList } from '@/components/directory/DirectoryList';
+import { DirectoryPdfLinks } from '@/components/home/DirectoryPdfLinks';
 import { useTranslation } from '@/contexts/LocaleContext';
 
 interface HomePageClientProps {
@@ -49,6 +50,7 @@ export function HomePageClient({ organizations, towns }: HomePageClientProps) {
               </span>
               <span className="text-sm text-white/70">{t('hero.stat.freeServices')}</span>
             </div>
+            <DirectoryPdfLinks organizations={organizations} />
           </div>
         </div>
       </section>
