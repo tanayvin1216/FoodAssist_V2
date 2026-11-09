@@ -19,28 +19,30 @@ A simple, fast way for people in Carteret County, North Carolina to find food pa
 
 ## About
 
-I built this for the Carteret County Food & Health Council. They were keeping their food-assistance directory current by hand: a Google Form fed a spreadsheet, reports got copied into Word documents, and volunteers spent hours every month just confirming that phone numbers and hours were still right.
+I built Food Assist for the Carteret County Food & Health Council after learning how much time they spent keeping track of local food resources. They were using Google Forms to collect information, spreadsheets to organize it, and Word documents to put together reports. Volunteers also had to spend hours checking whether pantry hours, phone numbers, and other details were still accurate.
 
-This app replaces all of that. The public side lets anyone search by town or type of help and see who's open right now. The private side lets the Council and each organization keep their own listing up to date without touching a spreadsheet or waiting on a developer.
+I wanted to make that process easier for both the Council and the people relying on these services. Food Assist brings everything into one website where residents can quickly find food pantries and assistance programs near them. Instead of having to contact the Council to change a listing, organizations can log in and update their own information.
 
-The whole thing is built around one constraint: it has to work for someone who isn't comfortable with technology, on a phone, possibly in a hurry. That shaped a lot of the decisions — plain language, big tap targets, no clutter, and a layout that loads fast on a weak connection.
+One thing I focused on was making the website easy to use, especially for people who might not be comfortable with technology. Someone looking for food assistance shouldn't have to navigate a complicated website just to find a phone number or address. I kept the design simple, made buttons easy to tap on a phone, and tried to make sure pages loaded quickly even with a slow internet connection.
 
 ## What it does
 
-For residents:
+**For residents:**
 
-- Search and filter by town, type of assistance, days open, and donation needs
-- See whether a place is open right now, including 24-hour pantries
-- Call, get directions, or open a website in a single tap
-- Read listings in English, with Spanish availability flagged per organization
+- Search for food pantries and assistance programs by town, type of help, operating days, or donation needs.
+- Check whether a pantry is currently open, including locations that operate 24 hours a day.
+- Call an organization, get directions, or visit its website with one tap.
+- Find information in English and see which organizations also offer assistance in Spanish.
 
-For the Council and partner organizations (private admin dashboard + org portal):
+**For the Council and partner organizations:**
 
-- Organizations update their own hours, contact details, and services
-- Post volunteer needs and collect applications from the community
-- Record council donations and review them over time
-- Export the full directory as a print-ready PDF, and data as CSV / Excel
-- Edit site content — branding, navigation, the emergency help banner — without code
+- Organizations can log in and update their own hours, contact information, and services without needing help from a developer.
+- Post volunteer opportunities and receive applications from people interested in helping.
+- Keep track of donations made by the Council and look back at previous records.
+- Download the directory as a printable PDF or export information to Excel and CSV files.
+- Update website content, including the logo, navigation, and emergency assistance banner, without changing any code.
+
+The goal was to save the Council time on administrative work while making it easier for people in Carteret County to find the food assistance they need.
 
 ## Built with
 
